@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9M2PJU Lat long to Kertau RSO Malaya Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
+  --border:#30363d;--border2:#484f58;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --green:#3fb950;--green2:#238636;--green-dim:#1a3a22;
+  --amber:#d29922;--amber-dim:#2d1f00;
+  --red:#f85149;--red-dim:#2a0d0d;
+  --blue:#58a6ff;--blue-dim:#0d2136;
+  --r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;line-height:1.6;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.25;pointer-events:none;z-index:0;}
+
+.page{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:2.5rem 1.25rem 5rem;}
+
+/* Header */
+.header{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid var(--green2);background:var(--green-dim);padding:4px 12px;border-radius:20px;margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin-bottom:.4rem;}
+h1 em{font-style:italic;color:var(--green);}
+.subtitle{color:var(--text2);font-size:14px;}
+
+/* Mode toggle */
+.mode-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:5px;gap:5px;margin-bottom:1.5rem;}
+.mode-btn{flex:1;background:none;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:400;padding:10px 8px;border-radius:9px;cursor:pointer;transition:all .2s;text-align:center;}
+.mode-btn.active{background:var(--bg2);color:var(--text);border:1px solid var(--border2);font-weight:500;}
+.mode-btn .dir{font-family:'DM Mono',monospace;font-size:11px;display:block;color:var(--green);margin-top:2px;}
+
+/* Card */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.25rem;animation:fadeUp .5s ease both;}
+.card-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Tabs (DD/DMS) */
+.tabs{display:flex;background:var(--bg3);border-radius:var(--r);padding:4px;gap:4px;margin-bottom:1.25rem;}
+.tab{flex:1;background:none;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;padding:7px 10px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border);font-weight:500;}
+
+/* Inputs */
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
+.field{display:flex;flex-direction:column;gap:5px;}
+label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;}
+input[type=number]{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;-moz-appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input[type=number]:focus{border-color:var(--green);}
+input[type=number]::placeholder{color:var(--text3);}
+.dms-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.dms-row input{text-align:center;}
+.field-label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px;display:block;}
+
+/* Grid ref inputs */
+.grid-input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
+.grid-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+
+/* Button */
+.btn-convert{width:100%;padding:12px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.02em;transition:all .2s;margin-top:.25rem;}
+.btn-convert:hover{background:#2ea043;transform:translateY(-1px);}
+.btn-convert:active{transform:scale(.99);}
+
+/* Examples */
+.example-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:1rem;}
+.ex-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;padding:4px 11px;cursor:pointer;transition:all .2s;}
+.ex-btn:hover{border-color:var(--green2);color:var(--green);}
+
+/* Map */
+#map{height:340px;border-radius:var(--rl);border:1px solid var(--border);overflow:hidden;background:var(--bg3);}
+.map-hint{font-size:11px;color:var(--text3);margin-top:8px;text-align:center;}
+
+/* Results */
+.result-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.rtile{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;}
+.rtile .rl{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+.rtile .rv{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);}
+.rtile .ru{font-size:11px;color:var(--text3);margin-top:2px;}
+
+.gridbox{background:var(--green-dim);border:1px solid var(--green2);border-radius:var(--rl);padding:1.4rem 1.5rem;margin-bottom:12px;}
+.gridbox .gl{font-size:10px;color:var(--green);font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.gridbox .gv{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--green);letter-spacing:.06em;}
+
+.grid-small-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gsmall{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;}
+.gsmall .gl{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+.gsmall .gv{font-family:'DM Mono',monospace;font-size:16px;color:var(--text);}
+
+.copy-row{display:flex;gap:8px;margin-top:12px;}
+.btn-copy{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
+.btn-copy:hover{border-color:var(--border2);color:var(--text);}
+
+/* Error / note */
+.err{background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-top:1rem;display:none;}
+.note{background:var(--blue-dim);border:1px solid #1f4068;border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.75;}
+.note strong{color:var(--blue);font-weight:500;}
+
+footer{text-align:center;padding-top:3rem;font-size:11px;color:var(--text3);}
+footer a{color:var(--text2);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;}
+footer a:hover{color:var(--text);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:520px){
+  .input-row,.result-row,.grid-small-row,.grid-input-row{grid-template-columns:1fr;}
+  .gridbox .gv{font-size:20px;}
+  .copy-row{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="badge">Malayan RSO · Kertau 1948 · EPSG:3168</div>
+  <h1>9M2PJU Lat Long to <em>Kertau RSO Malaya</em> Converter</h1>
+  <p class="subtitle">Convert Lat/Long coordinates ⇄ Kertau 1948 Topographic Grid Reference · Peninsular Malaysia</p>
+</div>
+
+<!-- Mode toggle -->
+<div class="mode-toggle">
+  <button class="mode-btn active" id="btn-mode-ll" onclick="setMode('ll')">
+    Lat/Long → RSO Grid
+    <span class="dir">φλ → E N</span>
+  </button>
+  <button class="mode-btn" id="btn-mode-gr" onclick="setMode('gr')">
+    RSO Grid → Lat/Long
+    <span class="dir">E N → φλ</span>
+  </button>
+</div>
+
+<!-- INPUT CARD -->
+<div class="card" style="animation-delay:.05s">
+
+  <!-- === MODE A: Lat/Long → Grid === -->
+  <div id="panel-ll">
+    <div class="card-title">Input Coordinates (Lat/Long)</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dd')">Decimal Degrees (DD)</button>
+      <button class="tab" onclick="switchTab('dms')">Degrees Minutes Seconds (DMS)</button>
+    </div>
+    <div id="tab-dd">
+      <div class="input-row">
+        <div class="field"><label>Latitude (°N)</label><input type="number" id="dd-lat" placeholder="e.g. 3.156900" step="0.000001"></div>
+        <div class="field"><label>Longitude (°E)</label><input type="number" id="dd-lng" placeholder="e.g. 101.712300" step="0.000001"></div>
+      </div>
+    </div>
+    <div id="tab-dms" style="display:none">
+      <div style="margin-bottom:12px">
+        <span class="field-label">Latitude — North (N)</span>
+        <div class="dms-row">
+          <input type="number" id="lat-d" placeholder="°" min="1" max="7">
+          <input type="number" id="lat-m" placeholder="'" min="0" max="59">
+          <input type="number" id="lat-s" placeholder='"' min="0" max="59.99" step="0.01">
+        </div>
+      </div>
+      <div>
+        <span class="field-label">Longitude — East (E)</span>
+        <div class="dms-row">
+          <input type="number" id="lng-d" placeholder="°" min="99" max="120">
+          <input type="number" id="lng-m" placeholder="'" min="0" max="59">
+          <input type="number" id="lng-s" placeholder='"' min="0" max="59.99" step="0.01">
+        </div>
+      </div>
+    </div>
+    <button class="btn-convert" onclick="doConvert()">→ Convert to RSO Grid</button>
+    <div style="margin-top:1.1rem">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Example Locations</div>
+      <div class="example-list">
+        <button class="ex-btn" onclick="loadLL(3.1390,101.6869)">Kuala Lumpur</button>
+        <button class="ex-btn" onclick="loadLL(4.1769,103.1443)">Kuantan</button>
+        <button class="ex-btn" onclick="loadLL(5.4141,100.3288)">Penang</button>
+        <button class="ex-btn" onclick="loadLL(1.4655,103.7578)">Johor Bahru</button>
+        <button class="ex-btn" onclick="loadLL(4.0000,102.2500)">Kertau (Origin)</button>
+        <button class="ex-btn" onclick="loadLL(6.1254,102.2381)">Kota Bharu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODE B: Grid RSO → Lat/Long === -->
+  <div id="panel-gr" style="display:none">
+    <div class="card-title">Input RSO Grid Reference</div>
+    <div class="grid-input-row">
+      <div class="field">
+        <label>Easting — E (meters)</label>
+        <input type="number" id="gr-e" placeholder="e.g. 411500">
+        <div class="grid-hint">Range: 100,000 – 900,000</div>
+      </div>
+      <div class="field">
+        <label>Northing — N (meters)</label>
+        <input type="number" id="gr-n" placeholder="e.g. 349000">
+        <div class="grid-hint">Range: 0 – 700,000</div>
+      </div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">— or enter grid reference directly —</div>
+      <div class="input-row">
+        <div class="field">
+          <label>6-Digit Grid (EEE NNN)</label>
+          <input type="text" id="gr-6" placeholder="e.g. 411 349" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid6()" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div class="field">
+          <label>8-Digit Grid (EEEE NNNN)</label>
+          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid8()" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
+    </div>
+    <button class="btn-convert" onclick="doConvertGR()">→ Convert to Lat/Long</button>
+    <div style="margin-top:1.1rem">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Example RSO Grids</div>
+      <div class="example-list">
+        <button class="ex-btn" onclick="loadGR(411219,349380)">Kuala Lumpur</button>
+        <button class="ex-btn" onclick="loadGR(536420,462310)">Kuantan</button>
+        <button class="ex-btn" onclick="loadGR(247830,600150)">Penang</button>
+        <button class="ex-btn" onclick="loadGR(431800,162400)">Johor Bahru</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="err" id="err-box"></div>
+</div>
+
+<!-- MAP CARD -->
+<div class="card" style="animation-delay:.1s">
+  <div class="card-title">Map — OpenStreetMap</div>
+  <div id="map"></div>
+  <p class="map-hint">📍 Click anywhere on the map to get coordinates</p>
+</div>
+
+<!-- RESULT CARD -->
+<div class="card" id="result-card" style="display:none;animation-delay:.15s">
+  <div class="card-title">Results</div>
+  <div id="result-ll-section">
+    <div class="result-row">
+      <div class="rtile"><div class="rl">Latitude</div><div class="rv" id="res-lat">—</div><div class="ru">decimal degrees (°N)</div></div>
+      <div class="rtile"><div class="rl">Longitude</div><div class="rv" id="res-lng">—</div><div class="ru">decimal degrees (°E)</div></div>
+    </div>
+    <div class="result-row">
+      <div class="rtile"><div class="rl">Latitude (DMS)</div><div class="rv" id="res-lat-dms" style="font-size:14px">—</div></div>
+      <div class="rtile"><div class="rl">Longitude (DMS)</div><div class="rv" id="res-lng-dms" style="font-size:14px">—</div></div>
+    </div>
+  </div>
+  <div id="result-gr-section">
+    <div class="result-row">
+      <div class="rtile"><div class="rl">Easting (E)</div><div class="rv" id="res-e">—</div><div class="ru">meters</div></div>
+      <div class="rtile"><div class="rl">Northing (N)</div><div class="rv" id="res-n">—</div><div class="ru">meters</div></div>
+    </div>
+    <div class="gridbox">
+      <div class="gl">8-Digit Grid Reference — precision ±10m</div>
+      <div class="gv" id="res-8digit">—</div>
+    </div>
+    <div class="grid-small-row">
+      <div class="gsmall"><div class="gl">6-Digit Grid — ±100m</div><div class="gv" id="res-6digit">—</div></div>
+      <div class="gsmall"><div class="gl">Input coordinates</div><div class="gv" id="res-input" style="font-size:12px;color:var(--text2);margin-top:2px">—</div></div>
+    </div>
+  </div>
+  <div class="copy-row" id="copy-row-gr" style="display:none">
+    <button class="btn-copy" onclick="cp('grid8')">Copy Grid 8</button>
+    <button class="btn-copy" onclick="cp('grid6')">Copy Grid 6</button>
+    <button class="btn-copy" onclick="cp('en')">Copy E/N</button>
+  </div>
+  <div class="copy-row" id="copy-row-ll" style="display:none">
+    <button class="btn-copy" onclick="cp('ll-dd')">Copy DD</button>
+    <button class="btn-copy" onclick="cp('ll-dms')">Copy DMS</button>
+  </div>
+</div>
+
+<!-- NOTE -->
+<div class="card" style="animation-delay:.2s">
+  <div class="card-title">Datum Notes</div>
+  <div class="note">
+    <strong>Kertau 1948 Datum:</strong> This app uses the Kertau 1948 datum / Modified Everest ellipsoid (EPSG:3168) — same as the official topographic maps of Peninsular Malaysia.<br><br>
+    <strong>WGS84 Difference:</strong> Modern GPS and Google Maps use the WGS84 datum. The difference can reach <strong>~150–200 meters</strong>. Do not input GPS coordinates directly without datum transformation if high precision is required.<br><br>
+    <strong>Coverage:</strong> Peninsular Malaysia only — Lat: 1°–7.5°N, Long: 99°–104.5°E.
+  </div>
+</div>
+
+<footer>
+  Formula: Hotine Oblique Mercator (Variant A) &nbsp;·&nbsp;
+  <a href="https://epsg.io/3168" target="_blank">EPSG:3168</a> &nbsp;·&nbsp;
+  <a href="https://epsg.io/transform#s_srs=4326&t_srs=3168" target="_blank">Verify on epsg.io</a> &nbsp;·&nbsp;
+  Map © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>
+</footer>
+
+</div><!-- .page -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let mode = 'll'; // 'll' = latlong→grid, 'gr' = grid→latlong
+let activeTab = 'dd';
+let lastR = {};
+let map, marker;
+
+// ── Map init ─────────────────────────────────────────────────────────────────
+function initMap() {
+  map = L.map('map').setView([4.2, 102.0], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(map);
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;background:#3fb950;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 3px rgba(63,185,80,.35)"></div>`,
+    iconSize: [14,14], iconAnchor: [7,7]
+  });
+
+  map.on('click', function(e) {
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) return;
+    placeMarker(lat, lng);
+    if (mode === 'll') {
+      setMode('ll');
+      switchTab('dd');
+      document.getElementById('dd-lat').value = lat.toFixed(6);
+      document.getElementById('dd-lng').value = lng.toFixed(6);
+      runLL(lat, lng);
+    } else {
+      const {E, N} = latLngToRSO(lat, lng);
+      document.getElementById('gr-e').value = Math.round(E);
+      document.getElementById('gr-n').value = Math.round(N);
+      runGR(Math.round(E), Math.round(N));
+    }
+  });
+
+  function placeMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng], {icon: pinIcon}).addTo(map);
+  }
+  window.placeMarker = placeMarker;
+}
+
+// ── RSO Math ─────────────────────────────────────────────────────────────────
+const RSO = {
+  a: 6377304.063, b: 6356103.039,
+  phi0: 4*Math.PI/180, lamc: 102.25*Math.PI/180,
+  azc: 323.0257964*Math.PI/180, k0: 0.99984,
+  FE: 804671.0, FN: 0.0
+};
+RSO.e2 = 1-(RSO.b*RSO.b)/(RSO.a*RSO.a);
+RSO.e  = Math.sqrt(RSO.e2);
+
+function _t(phi) {
+  const s = Math.sin(phi);
+  return Math.tan(Math.PI/4 - phi/2) / Math.pow((1 - RSO.e*s)/(1 + RSO.e*s), RSO.e/2);
+}
+
+function _precompute() {
+  if (RSO._ready) return;
+  const {e2,e,phi0,lamc,azc,k0,a} = RSO;
+  const sp0 = Math.sin(phi0), cp0 = Math.cos(phi0);
+  const B = Math.sqrt(1 + e2*Math.pow(cp0,4)/(1-e2));
+  const A = a*B*k0*Math.sqrt(1-e2)/(1-e2*sp0*sp0);
+  const t0 = _t(phi0);
+  const D  = B*Math.sqrt(1-e2)/(cp0*Math.sqrt(1-e2*sp0*sp0));
+  const DD = Math.max(D,1);
+  const F  = DD+Math.sqrt(DD*DD-1);
+  const H  = F*Math.pow(t0,B);
+  const G  = (F-1/F)/2;
+  const gam0 = Math.asin(Math.sin(azc)/D);
+  const lam0  = lamc - Math.asin(G*Math.tan(gam0))/B;
+  Object.assign(RSO,{B,A,t0,D,F,H,G,gam0,lam0,_ready:true});
+}
+
+function latLngToRSO(latDeg, lngDeg) {
+  _precompute();
+  const {A,B,H,G,gam0,lam0,azc,FE,FN} = RSO;
+  const phi = latDeg*Math.PI/180, lam = lngDeg*Math.PI/180;
+  const t  = _t(phi);
+  const Q  = H/Math.pow(t,B);
+  const S  = (Q-1/Q)/2;
+  const T2 = (Q+1/Q)/2;
+  const V  = Math.sin(B*(lam-lam0));
+  const U  = (-V*Math.cos(gam0)+S*Math.sin(gam0))/T2;
+  const v  = A*Math.log((1-U)/(1+U))/2;
+  const u  = A*Math.atan2(S*Math.cos(gam0)+V*Math.sin(gam0), Math.cos(B*(lam-lam0)))/B;
+  return {
+    E: v*Math.cos(azc)+u*Math.sin(azc)+FE,
+    N: u*Math.cos(azc)-v*Math.sin(azc)+FN
+  };
+}
+
+function rsoToLatLng(E, N) {
+  _precompute();
+  const {A,B,H,G,gam0,lam0,azc,FE,FN,e,e2,a} = RSO;
+  const v = (E-FE)*Math.cos(azc) - (N-FN)*Math.sin(azc);
+  const u = (N-FN)*Math.cos(azc) + (E-FE)*Math.sin(azc);
+  const Q2 = Math.exp(-B*v/A);
+  const S2 = (Q2-1/Q2)/2;
+  const T3 = (Q2+1/Q2)/2;
+  const V2 = Math.sin(B*u/A);
+  const U2 = (V2*Math.cos(gam0)+S2*Math.sin(gam0))/T3;
+  const t2 = Math.pow(H/Math.sqrt((1+U2)/(1-U2)), 1/B);
+  // iterate phi
+  let phi = Math.PI/2 - 2*Math.atan(t2);
+  for (let i=0;i<10;i++) {
+    const s = Math.sin(phi);
+    const next = Math.PI/2 - 2*Math.atan(t2*Math.pow((1-e*s)/(1+e*s), e/2));
+    if (Math.abs(next-phi) < 1e-11) { phi=next; break; }
+    phi = next;
+  }
+  const lam = lam0 - Math.atan2(-Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*Math.cos(gam0)*T3,
+    Math.sin(gam0)*T3 - Math.cos(gam0)*Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*T3) / B;
+  // correction
+  const lam2 = lam0 + Math.atan2(
+    S2*Math.cos(gam0) - V2*Math.sin(gam0),
+    Math.cos(B*u/A)
+  ) / B;
+  return { lat: phi*180/Math.PI, lng: lam2*180/Math.PI };
+}
+
+// ── Grid helpers ─────────────────────────────────────────────────────────────
+function fmtGrid(E,N,d) {
+  const ei=Math.round(E), ni=Math.round(N);
+  return d===6
+    ? String(Math.floor(ei/100)).padStart(3,'0')+' '+String(Math.floor(ni/100)).padStart(3,'0')
+    : String(Math.floor(ei/10)).padStart(4,'0')+' '+String(Math.floor(ni/10)).padStart(4,'0');
+}
+
+function toDMS(deg) {
+  const d = Math.floor(deg);
+  const mf = (deg-d)*60;
+  const m = Math.floor(mf);
+  const s = ((mf-m)*60).toFixed(2);
+  return `${d}° ${m}' ${s}"`;
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function showErr(msg) {
+  const el=document.getElementById('err-box');
+  el.textContent=msg; el.style.display='block';
+  document.getElementById('result-card').style.display='none';
+}
+function clearErr(){ document.getElementById('err-box').style.display='none'; }
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('panel-ll').style.display = m==='ll' ? '' : 'none';
+  document.getElementById('panel-gr').style.display = m==='gr' ? '' : 'none';
+  document.getElementById('btn-mode-ll').classList.toggle('active', m==='ll');
+  document.getElementById('btn-mode-gr').classList.toggle('active', m==='gr');
+  document.getElementById('result-card').style.display='none';
+  clearErr();
+}
+
+function switchTab(t) {
+  activeTab = t;
+  document.getElementById('tab-dd').style.display = t==='dd' ? '' : 'none';
+  document.getElementById('tab-dms').style.display = t==='dms' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='dd')||(i===1&&t==='dms')));
+}
+
+// Get Lat/Lng from inputs
+function getLL() {
+  if (activeTab==='dd') {
+    return {lat:parseFloat(document.getElementById('dd-lat').value), lng:parseFloat(document.getElementById('dd-lng').value)};
+  }
+  const ld=parseFloat(document.getElementById('lat-d').value)||0;
+  const lm=parseFloat(document.getElementById('lat-m').value)||0;
+  const ls=parseFloat(document.getElementById('lat-s').value)||0;
+  const nd=parseFloat(document.getElementById('lng-d').value)||0;
+  const nm=parseFloat(document.getElementById('lng-m').value)||0;
+  const ns=parseFloat(document.getElementById('lng-s').value)||0;
+  return {lat:ld+lm/60+ls/3600, lng:nd+nm/60+ns/3600};
+}
+
+function loadLL(lat,lng) {
+  setMode('ll'); switchTab('dd');
+  document.getElementById('dd-lat').value=lat;
+  document.getElementById('dd-lng').value=lng;
+  doConvert();
+}
+
+function loadGR(e,n) {
+  setMode('gr');
+  document.getElementById('gr-e').value=e;
+  document.getElementById('gr-n').value=n;
+  doConvertGR();
+}
+
+function parseGrid6() {
+  const v=document.getElementById('gr-6').value.replace(/\s+/g,' ').trim();
+  const p=v.split(/[\s,]+/);
+  if (p.length===2 && p[0].length===3 && p[1].length===3) {
+    document.getElementById('gr-e').value=parseInt(p[0])*100+50;
+    document.getElementById('gr-n').value=parseInt(p[1])*100+50;
+  }
+}
+
+function parseGrid8() {
+  const v=document.getElementById('gr-8').value.replace(/\s+/g,' ').trim();
+  const p=v.split(/[\s,]+/);
+  if (p.length===2 && p[0].length===4 && p[1].length===4) {
+    document.getElementById('gr-e').value=parseInt(p[0])*10+5;
+    document.getElementById('gr-n').value=parseInt(p[1])*10+5;
+  }
+}
+
+// ── Convert LL → Grid ─────────────────────────────────────────────────────────
+function doConvert() {
+  clearErr();
+  const {lat,lng}=getLL();
+  if (isNaN(lat)||isNaN(lng)) { showErr('Please enter latitude and longitude values.'); return; }
+  if (lat<1||lat>7.5) { showErr('Latitude out of Peninsular Malaysia range (1° – 7.5°N).'); return; }
+  if (lng<99||lng>104.5) { showErr('Longitude out of Peninsular Malaysia range (99° – 104.5°E).'); return; }
+  runLL(lat,lng);
+}
+
+function runLL(lat,lng) {
+  try {
+    const {E,N}=latLngToRSO(lat,lng);
+    const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
+    lastR={E:Math.round(E),N:Math.round(N),g6,g8,lat,lng};
+
+    document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
+    document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
+    document.getElementById('res-8digit').textContent=g8;
+    document.getElementById('res-6digit').textContent=g6;
+    document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
+    document.getElementById('result-ll-section').style.display='none';
+    document.getElementById('result-gr-section').style.display='';
+    document.getElementById('copy-row-gr').style.display='flex';
+    document.getElementById('copy-row-ll').style.display='none';
+    document.getElementById('result-card').style.display='';
+
+    placeMarker(lat,lng);
+    map.setView([lat,lng], Math.max(map.getZoom(),12));
+    document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+  } catch(e) { showErr('Calculation error. Please check your inputs.'); }
+}
+
+// ── Convert Grid → LL ─────────────────────────────────────────────────────────
+function doConvertGR() {
+  clearErr();
+  const E=parseFloat(document.getElementById('gr-e').value);
+  const N=parseFloat(document.getElementById('gr-n').value);
+  if (isNaN(E)||isNaN(N)) { showErr('Please enter Easting and Northing values.'); return; }
+  if (E<100000||E>900000) { showErr('Easting out of Malayan RSO range (100,000 – 900,000).'); return; }
+  if (N<0||N>700000) { showErr('Northing out of Malayan RSO range (0 – 700,000).'); return; }
+  runGR(E,N);
+}
+
+function runGR(E,N) {
+  try {
+    const {lat,lng}=rsoToLatLng(E,N);
+    if (lat<0.5||lat>8||lng<98||lng>106) { showErr('Coordinates are outside Peninsular Malaysia.'); return; }
+    lastR={lat,lng,E:Math.round(E),N:Math.round(N)};
+    lastR.g6=fmtGrid(E,N,6); lastR.g8=fmtGrid(E,N,8);
+
+    document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
+    document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
+    document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
+    document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
+    document.getElementById('result-ll-section').style.display='';
+    document.getElementById('result-gr-section').style.display='none';
+    document.getElementById('copy-row-ll').style.display='flex';
+    document.getElementById('copy-row-gr').style.display='none';
+    document.getElementById('result-card').style.display='';
+
+    placeMarker(lat,lng);
+    map.setView([lat,lng], Math.max(map.getZoom(),12));
+    document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+  } catch(e) { showErr('Calculation error. Please check your inputs.'); }
+}
+
+// ── Copy ──────────────────────────────────────────────────────────────────────
+function cp(type) {
+  const map2={
+    'grid8': lastR.g8,
+    'grid6': lastR.g6,
+    'en': `E: ${lastR.E}  N: ${lastR.N}`,
+    'll-dd': `${lastR.lat?.toFixed(6)}°N  ${lastR.lng?.toFixed(6)}°E`,
+    'll-dms': `${toDMS(lastR.lat)} N  ${toDMS(lastR.lng)} E`
+  };
+  const text=map2[type];
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btns=[...document.querySelectorAll('.btn-copy')];
+    const idx=['grid8','grid6','en','ll-dd','ll-dms'].indexOf(type)%btns.length;
+    const btn=btns.find(b=>b.onclick?.toString().includes(`'${type}'`));
+    if (btn) { const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o,1500); }
+  }).catch(()=>{});
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', initMap);
+document.addEventListener('keydown', e=>{ if(e.key==='Enter') mode==='ll' ? doConvert() : doConvertGR(); });
+</script>
+</body>
+</html>
