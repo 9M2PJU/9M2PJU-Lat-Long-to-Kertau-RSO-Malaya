@@ -1,13 +1,5 @@
 # 9M2PJU Lat-Long to Kertau RSO Malaya Converter
 
-[![License: AGPL v3](https://img.shields.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-![GitHub Pages](https://img.shields.shields.shields.io/badge/GitHub_Pages-222222?style=flat&logo=github&logoColor=white)
-![HTML5](https://img.shields.shields.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
-![CSS3](https://img.shields.shields.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.shields.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
-![Leaflet](https://img.shields.shields.shields.io/badge/Leaflet-19992E?style=flat&logo=leaflet&logoColor=white)
-[![HamRadio.my](https://img.shields.shields.shields.io/badge/Made%20by-9M2PJU-green.svg)](https://hamradio.my)
-
 An elegant, responsive web utility designed for ham radio operators, land surveyors, hikers, and mapping enthusiasts to convert coordinates between standard Latitude/Longitude and the Malayan Rectified Skew Orthomorphic (RSO) Kertau 1948 grid system used in topographic maps of Peninsular Malaysia.
 
 Developed by **9M2PJU** ([https://hamradio.my](https://hamradio.my)).
