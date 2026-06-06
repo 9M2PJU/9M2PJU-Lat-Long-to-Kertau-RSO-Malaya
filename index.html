@@ -41,8 +41,53 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .map-info-box .info-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--green);}
 .map-info-box .info-value-small{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
 
+/* Map Rulers */
+#ruler-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  right: 0;
+  height: 24px;
+  z-index: 500;
+  pointer-events: none;
+  overflow: hidden;
+  border-top: 1px solid rgba(63, 185, 80, 0.5);
+  background: linear-gradient(to top, rgba(13, 17, 23, 0.85) 0%, transparent 100%);
+}
+#ruler-left {
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  left: 0;
+  width: 24px;
+  z-index: 500;
+  pointer-events: none;
+  overflow: hidden;
+  border-right: 1px solid rgba(63, 185, 80, 0.5);
+  background: linear-gradient(to right, rgba(13, 17, 23, 0.85) 0%, transparent 100%);
+}
+#ruler-corner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  z-index: 501;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--green);
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
 /* Grid controls */
-.grid-controls{position:absolute;bottom:20px;left:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px;z-index:1000;display:flex;gap:6px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.grid-controls{position:absolute;bottom:30px;left:30px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px;z-index:1000;display:flex;gap:6px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
 .grid-controls label{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;}
 .grid-controls select{background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:4px 8px;cursor:pointer;outline:none;}
 .grid-controls select:focus{border-color:var(--green);}
@@ -324,6 +369,11 @@ footer a:hover{color:var(--text);}
 <div class="map-container active" id="map-container">
   <div id="map"></div>
   
+  <!-- Map Rulers -->
+  <div id="ruler-corner">RSO</div>
+  <div id="ruler-left"></div>
+  <div id="ruler-bottom"></div>
+  
   <!-- Grid Controls -->
   <div class="grid-controls">
     <button class="grid-toggle active" id="grid-toggle-btn" onclick="toggleGrid()">Grid</button>
@@ -338,6 +388,8 @@ footer a:hover{color:var(--text);}
       <option value="1000">1 km</option>
       <option value="500">500 m</option>
       <option value="200">200 m</option>
+      <option value="100">100 m</option>
+      <option value="50">50 m</option>
     </select>
   </div>
   
@@ -436,7 +488,7 @@ function latLngToRSO(latDeg, lngDeg) {
 
 function rsoToLatLng(E, N) {
   _precompute();
-  const {A,B,H,G,gam0,lam0,azc,FE,FN,e,e2,a} = RSO;
+  const {A,B,H,G,gam0,lam0,azc,FE,FN,e} = RSO;
   const v = (E-FE)*Math.cos(azc) - (N-FN)*Math.sin(azc);
   const u = (N-FN)*Math.cos(azc) + (E-FE)*Math.sin(azc);
   const Q2 = Math.exp(-B*v/A);
@@ -459,7 +511,141 @@ function rsoToLatLng(E, N) {
   return { lat: phi*180/Math.PI, lng: lam2*180/Math.PI };
 }
 
-// ── Canvas Grid Overlay ─────────────────────────────────────────────────────
+// ── DOM Ruler Update ────────────────────────────────────────────────────
+function updateRulers() {
+  const bottomRuler = document.getElementById('ruler-bottom');
+  const leftRuler = document.getElementById('ruler-left');
+  
+  if (!gridEnabled || !map) {
+    bottomRuler.innerHTML = '';
+    leftRuler.innerHTML = '';
+    return;
+  }
+
+  const bounds = map.getBounds();
+  const nw = bounds.getNorthWest();
+  const se = bounds.getSouthEast();
+  const rsoNW = latLngToRSO(nw.lat, nw.lng);
+  const rsoSE = latLngToRSO(se.lat, se.lng);
+  
+  const minE = Math.min(rsoNW.E, rsoSE.E);
+  const maxE = Math.max(rsoNW.E, rsoSE.E);
+  const minN = Math.min(rsoNW.N, rsoSE.N);
+  const maxN = Math.max(rsoNW.N, rsoSE.N);
+
+  let step;
+  if (gridDensityMode === 'auto') {
+    const zoom = map.getZoom();
+    if (zoom < 8) step = 50000;
+    else if (zoom < 10) step = 20000;
+    else if (zoom < 11) step = 10000;
+    else if (zoom < 12) step = 5000;
+    else if (zoom < 13) step = 2000;
+    else if (zoom < 14) step = 1000;
+    else if (zoom < 15) step = 500;
+    else if (zoom < 16) step = 200;
+    else if (zoom < 17) step = 100;
+    else step = 50;
+  } else {
+    step = parseInt(gridDensityMode);
+  }
+
+  const startE = Math.floor(minE / step) * step;
+  const endE = Math.ceil(maxE / step) * step;
+  const startN = Math.floor(minN / step) * step;
+  const endN = Math.ceil(maxN / step) * step;
+
+  bottomRuler.innerHTML = '';
+  leftRuler.innerHTML = '';
+
+  // Bottom Ruler (Easting)
+  for (let E = startE; E <= endE; E += step) {
+    const midN = (minN + maxN) / 2;
+    const ll = rsoToLatLng(E, midN);
+    if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
+    
+    const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+    
+    if (pt.x >= -50 && pt.x <= map.getSize().x + 50) {
+      const isMajor = (E % 10000 === 0);
+      const tickHeight = isMajor ? 12 : 6;
+      const label = `E ${(E/1000).toFixed(E >= 10000 ? 0 : 1)}`;
+      
+      const tick = document.createElement('div');
+      tick.style.position = 'absolute';
+      tick.style.left = (pt.x - 1) + 'px';
+      tick.style.bottom = '0';
+      tick.style.width = '2px';
+      tick.style.height = tickHeight + 'px';
+      tick.style.backgroundColor = isMajor ? 'rgba(63, 185, 80, 0.9)' : 'rgba(63, 185, 80, 0.5)';
+      
+      if (isMajor) {
+        const lbl = document.createElement('div');
+        lbl.style.position = 'absolute';
+        lbl.style.bottom = (tickHeight + 2) + 'px';
+        lbl.style.left = '50%';
+        lbl.style.transform = 'translateX(-50%)';
+        lbl.style.fontFamily = '"DM Mono", monospace';
+        lbl.style.fontSize = '10px';
+        lbl.style.fontWeight = 'bold';
+        lbl.style.color = '#3fb950';
+        lbl.style.whiteSpace = 'nowrap';
+        lbl.style.backgroundColor = 'rgba(13, 17, 23, 0.95)';
+        lbl.style.padding = '2px 5px';
+        lbl.style.borderRadius = '3px';
+        lbl.style.border = '1px solid rgba(63, 185, 80, 0.6)';
+        lbl.textContent = label;
+        tick.appendChild(lbl);
+      }
+      bottomRuler.appendChild(tick);
+    }
+  }
+
+  // Left Ruler (Northing)
+  for (let N = startN; N <= endN; N += step) {
+    const midE = (minE + maxE) / 2;
+    const ll = rsoToLatLng(midE, N);
+    if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
+    
+    const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+    
+    if (pt.y >= -50 && pt.y <= map.getSize().y + 50) {
+      const isMajor = (N % 10000 === 0);
+      const tickWidth = isMajor ? 12 : 6;
+      const label = `N ${(N/1000).toFixed(N >= 10000 ? 0 : 1)}`;
+      
+      const tick = document.createElement('div');
+      tick.style.position = 'absolute';
+      tick.style.top = (pt.y - 1) + 'px';
+      tick.style.left = '0';
+      tick.style.height = '2px';
+      tick.style.width = tickWidth + 'px';
+      tick.style.backgroundColor = isMajor ? 'rgba(63, 185, 80, 0.9)' : 'rgba(63, 185, 80, 0.5)';
+      
+      if (isMajor) {
+        const lbl = document.createElement('div');
+        lbl.style.position = 'absolute';
+        lbl.style.left = (tickWidth + 2) + 'px';
+        lbl.style.top = '50%';
+        lbl.style.transform = 'translateY(-50%)';
+        lbl.style.fontFamily = '"DM Mono", monospace';
+        lbl.style.fontSize = '10px';
+        lbl.style.fontWeight = 'bold';
+        lbl.style.color = '#3fb950';
+        lbl.style.whiteSpace = 'nowrap';
+        lbl.style.backgroundColor = 'rgba(13, 17, 23, 0.95)';
+        lbl.style.padding = '2px 5px';
+        lbl.style.borderRadius = '3px';
+        lbl.style.border = '1px solid rgba(63, 185, 80, 0.6)';
+        lbl.textContent = label;
+        tick.appendChild(lbl);
+      }
+      leftRuler.appendChild(tick);
+    }
+  }
+}
+
+// ── Canvas Grid Overlay (Lines Only) ────────────────────────────────────
 L.RSOGrid = L.Layer.extend({
   onAdd: function(map) {
     this._map = map;
@@ -471,18 +657,19 @@ L.RSOGrid = L.Layer.extend({
     this._canvas.style.zIndex = '400';
     
     map.getPanes().overlayPane.appendChild(this._canvas);
-    map.on('moveend zoomend resize', this._update, this);
+    map.on('moveend zoomend resize viewreset', this._update, this);
     this._update();
   },
   
   onRemove: function(map) {
     L.DomUtil.remove(this._canvas);
-    map.off('moveend zoomend resize', this._update, this);
+    map.off('moveend zoomend resize viewreset', this._update, this);
   },
   
   _update: function() {
     if (!gridEnabled) {
       this._canvas.style.display = 'none';
+      updateRulers();
       return;
     }
     this._canvas.style.display = 'block';
@@ -494,180 +681,82 @@ L.RSOGrid = L.Layer.extend({
     canvas.width = size.x;
     canvas.height = size.y;
     
-    const bounds = map.getBounds();
-    const topLeft = map.latLngToContainerPoint(bounds.getNorthWest());
-    
-    L.DomUtil.setPosition(canvas, topLeft);
-    
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Determine grid spacing based on zoom level
-    let gridSpacing;
-    if (gridDensityMode === 'auto') {
-      const zoom = map.getZoom();
-      if (zoom < 8) gridSpacing = 50000;
-      else if (zoom < 10) gridSpacing = 20000;
-      else if (zoom < 11) gridSpacing = 10000;
-      else if (zoom < 12) gridSpacing = 5000;
-      else if (zoom < 13) gridSpacing = 2000;
-      else if (zoom < 14) gridSpacing = 1000;
-      else if (zoom < 15) gridSpacing = 500;
-      else if (zoom < 16) gridSpacing = 200;
-      else if (zoom < 17) gridSpacing = 100;
-      else gridSpacing = 50;
-    } else {
-      gridSpacing = parseInt(gridDensityMode);
-    }
-    
-    // Get visible RSO bounds
+    const bounds = map.getBounds();
     const nw = bounds.getNorthWest();
     const se = bounds.getSouthEast();
     const rsoNW = latLngToRSO(nw.lat, nw.lng);
     const rsoSE = latLngToRSO(se.lat, se.lng);
     
-    const minE = Math.floor(Math.min(rsoNW.E, rsoSE.E) / gridSpacing) * gridSpacing;
-    const maxE = Math.ceil(Math.max(rsoNW.E, rsoSE.E) / gridSpacing) * gridSpacing;
-    const minN = Math.floor(Math.min(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
-    const maxN = Math.ceil(Math.max(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
+    let step;
+    if (gridDensityMode === 'auto') {
+      const zoom = map.getZoom();
+      if (zoom < 8) step = 50000;
+      else if (zoom < 10) step = 20000;
+      else if (zoom < 11) step = 10000;
+      else if (zoom < 12) step = 5000;
+      else if (zoom < 13) step = 2000;
+      else if (zoom < 14) step = 1000;
+      else if (zoom < 15) step = 500;
+      else if (zoom < 16) step = 200;
+      else if (zoom < 17) step = 100;
+      else step = 50;
+    } else {
+      step = parseInt(gridDensityMode);
+    }
     
-    // Draw grid lines
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(63, 185, 80, 0.4)';
-    ctx.setLineDash([4, 3]);
+    const minE = Math.floor(Math.min(rsoNW.E, rsoSE.E) / step) * step;
+    const maxE = Math.ceil(Math.max(rsoNW.E, rsoSE.E) / step) * step;
+    const minN = Math.floor(Math.min(rsoNW.N, rsoSE.N) / step) * step;
+    const maxN = Math.ceil(Math.max(rsoNW.N, rsoSE.N) / step) * step;
     
-    // Easting lines (vertical)
-    for (let E = minE; E <= maxE; E += gridSpacing) {
+    // Draw Easting lines
+    for (let E = minE; E <= maxE; E += step) {
+      const isMajor = (E % 10000 === 0);
       ctx.beginPath();
+      ctx.lineWidth = isMajor ? 1.5 : 1;
+      ctx.strokeStyle = isMajor ? 'rgba(63, 185, 80, 0.7)' : 'rgba(63, 185, 80, 0.3)';
+      ctx.setLineDash(isMajor ? [] : [3, 3]);
+      
       let first = true;
-      // Sample more points for smoother curves
-      const steps = Math.max(20, Math.ceil((maxN - minN) / (gridSpacing / 2)));
+      const steps = 40;
       for (let i = 0; i <= steps; i++) {
-        const N = minN + (maxN - minN) * i / steps;
+        const N = minN + (maxN - minN) * (i / steps);
         const ll = rsoToLatLng(E, N);
-        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
+        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
+        
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        if (first) {
-          ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
-          first = false;
-        } else {
-          ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
-        }
+        if (first) { ctx.moveTo(pt.x, pt.y); first = false; } 
+        else { ctx.lineTo(pt.x, pt.y); }
       }
       ctx.stroke();
     }
     
-    // Northing lines (horizontal)
-    for (let N = minN; N <= maxN; N += gridSpacing) {
+    // Draw Northing lines
+    for (let N = minN; N <= maxN; N += step) {
+      const isMajor = (N % 10000 === 0);
       ctx.beginPath();
+      ctx.lineWidth = isMajor ? 1.5 : 1;
+      ctx.strokeStyle = isMajor ? 'rgba(63, 185, 80, 0.7)' : 'rgba(63, 185, 80, 0.3)';
+      ctx.setLineDash(isMajor ? [] : [3, 3]);
+      
       let first = true;
-      const steps = Math.max(20, Math.ceil((maxE - minE) / (gridSpacing / 2)));
+      const steps = 40;
       for (let i = 0; i <= steps; i++) {
-        const E = minE + (maxE - minE) * i / steps;
+        const E = minE + (maxE - minE) * (i / steps);
         const ll = rsoToLatLng(E, N);
-        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
+        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
+        
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        if (first) {
-          ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
-          first = false;
-        } else {
-          ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
-        }
+        if (first) { ctx.moveTo(pt.x, pt.y); first = false; } 
+        else { ctx.lineTo(pt.x, pt.y); }
       }
       ctx.stroke();
     }
     
-    // Draw labels
-    ctx.setLineDash([]);
-    ctx.font = 'bold 11px "DM Mono", monospace';
-    ctx.textBaseline = 'middle';
-    
-    // Easting labels at BOTTOM edge
-    ctx.textAlign = 'center';
-    for (let E = minE; E <= maxE; E += gridSpacing) {
-      // Find where this easting line intersects the bottom of the map
-      // Sample along the easting line to find the point closest to bottom
-      let bestPt = null;
-      let bestDist = Infinity;
-      const bottomY = canvas.height - 15;
-      
-      const steps = 50;
-      for (let i = 0; i <= steps; i++) {
-        const N = minN + (maxN - minN) * i / steps;
-        const ll = rsoToLatLng(E, N);
-        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
-        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        const px = pt.x - topLeft.x;
-        const py = pt.y - topLeft.y;
-        
-        // Check if this point is near the bottom
-        if (py >= canvas.height - 40 && py <= canvas.height) {
-          const dist = Math.abs(py - bottomY);
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestPt = {x: px, y: bottomY};
-          }
-        }
-      }
-      
-      if (bestPt && bestPt.x >= 0 && bestPt.x <= canvas.width) {
-        const label = `E ${(E/1000).toFixed(E >= 10000 ? 0 : 1)}`;
-        const metrics = ctx.measureText(label);
-        
-        // Background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.fillRect(bestPt.x - metrics.width/2 - 5, bestPt.y - 8, metrics.width + 10, 16);
-        ctx.strokeStyle = 'rgba(63, 185, 80, 0.8)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bestPt.x - metrics.width/2 - 5, bestPt.y - 8, metrics.width + 10, 16);
-        
-        ctx.fillStyle = 'rgba(35, 134, 54, 1)';
-        ctx.fillText(label, bestPt.x, bestPt.y);
-      }
-    }
-    
-    // Northing labels at LEFT edge
-    ctx.textAlign = 'left';
-    for (let N = minN; N <= maxN; N += gridSpacing) {
-      // Find where this northing line intersects the left of the map
-      let bestPt = null;
-      let bestDist = Infinity;
-      const leftX = 10;
-      
-      const steps = 50;
-      for (let i = 0; i <= steps; i++) {
-        const E = minE + (maxE - minE) * i / steps;
-        const ll = rsoToLatLng(E, N);
-        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
-        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        const px = pt.x - topLeft.x;
-        const py = pt.y - topLeft.y;
-        
-        // Check if this point is near the left edge
-        if (px >= 0 && px <= 50) {
-          const dist = Math.abs(px - leftX);
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestPt = {x: leftX, y: py};
-          }
-        }
-      }
-      
-      if (bestPt && bestPt.y >= 0 && bestPt.y <= canvas.height) {
-        const label = `N ${(N/1000).toFixed(N >= 10000 ? 0 : 1)}`;
-        const metrics = ctx.measureText(label);
-        
-        // Background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.fillRect(bestPt.x - 3, bestPt.y - 8, metrics.width + 10, 16);
-        ctx.strokeStyle = 'rgba(63, 185, 80, 0.8)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bestPt.x - 3, bestPt.y - 8, metrics.width + 10, 16);
-        
-        ctx.fillStyle = 'rgba(35, 134, 54, 1)';
-        ctx.fillText(label, bestPt.x + 2, bestPt.y);
-      }
-    }
+    updateRulers();
   }
 });
 
@@ -679,7 +768,6 @@ function initMap() {
     maxZoom: 19
   }).addTo(map);
 
-  // Add RSO grid overlay
   gridCanvas = new L.RSOGrid();
   gridCanvas.addTo(map);
 
