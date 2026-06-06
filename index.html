@@ -150,11 +150,6 @@ footer a:hover{color:var(--text);}
 .leaflet-popup-content {
   margin: 12px 16px !important;
 }
-
-/* Dark map tiles filter */
-.leaflet-tile-pane {
-  filter: brightness(0.6) invert(1) contrast(0.85) hue-rotate(200deg) saturate(0.3) brightness(0.95);
-}
 </style>
 </head>
 <body>
@@ -339,7 +334,10 @@ footer a:hover{color:var(--text);}
       <option value="20000">20 km</option>
       <option value="10000">10 km</option>
       <option value="5000">5 km</option>
+      <option value="2000">2 km</option>
       <option value="1000">1 km</option>
+      <option value="500">500 m</option>
+      <option value="200">200 m</option>
     </select>
   </div>
   
@@ -504,15 +502,20 @@ L.RSOGrid = L.Layer.extend({
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Determine grid spacing
+    // Determine grid spacing based on zoom level
     let gridSpacing;
     if (gridDensityMode === 'auto') {
       const zoom = map.getZoom();
       if (zoom < 8) gridSpacing = 50000;
       else if (zoom < 10) gridSpacing = 20000;
-      else if (zoom < 12) gridSpacing = 10000;
-      else if (zoom < 14) gridSpacing = 5000;
-      else gridSpacing = 1000;
+      else if (zoom < 11) gridSpacing = 10000;
+      else if (zoom < 12) gridSpacing = 5000;
+      else if (zoom < 13) gridSpacing = 2000;
+      else if (zoom < 14) gridSpacing = 1000;
+      else if (zoom < 15) gridSpacing = 500;
+      else if (zoom < 16) gridSpacing = 200;
+      else if (zoom < 17) gridSpacing = 100;
+      else gridSpacing = 50;
     } else {
       gridSpacing = parseInt(gridDensityMode);
     }
@@ -528,18 +531,21 @@ L.RSOGrid = L.Layer.extend({
     const minN = Math.floor(Math.min(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
     const maxN = Math.ceil(Math.max(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
     
-    // Draw grid lines with better visibility
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(63, 185, 80, 0.5)';
-    ctx.setLineDash([6, 4]);
+    // Draw grid lines
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(63, 185, 80, 0.4)';
+    ctx.setLineDash([4, 3]);
     
     // Easting lines (vertical)
     for (let E = minE; E <= maxE; E += gridSpacing) {
       ctx.beginPath();
       let first = true;
-      for (let N = minN; N <= maxN; N += gridSpacing / 4) {
+      // Sample more points for smoother curves
+      const steps = Math.max(20, Math.ceil((maxN - minN) / (gridSpacing / 2)));
+      for (let i = 0; i <= steps; i++) {
+        const N = minN + (maxN - minN) * i / steps;
         const ll = rsoToLatLng(E, N);
-        if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
         if (first) {
           ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
@@ -555,9 +561,11 @@ L.RSOGrid = L.Layer.extend({
     for (let N = minN; N <= maxN; N += gridSpacing) {
       ctx.beginPath();
       let first = true;
-      for (let E = minE; E <= maxE; E += gridSpacing / 4) {
+      const steps = Math.max(20, Math.ceil((maxE - minE) / (gridSpacing / 2)));
+      for (let i = 0; i <= steps; i++) {
+        const E = minE + (maxE - minE) * i / steps;
         const ll = rsoToLatLng(E, N);
-        if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
         if (first) {
           ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
@@ -572,51 +580,93 @@ L.RSOGrid = L.Layer.extend({
     // Draw labels
     ctx.setLineDash([]);
     ctx.font = 'bold 11px "DM Mono", monospace';
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Easting labels (bottom edge)
+    // Easting labels at BOTTOM edge
+    ctx.textAlign = 'center';
     for (let E = minE; E <= maxE; E += gridSpacing) {
-      const ll = rsoToLatLng(E, minN);
-      if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
-      const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-      const x = pt.x - topLeft.x;
-      const y = canvas.height - 20;
+      // Find where this easting line intersects the bottom of the map
+      // Sample along the easting line to find the point closest to bottom
+      let bestPt = null;
+      let bestDist = Infinity;
+      const bottomY = canvas.height - 15;
       
-      const label = `E ${(E/1000).toFixed(0)}`;
-      const metrics = ctx.measureText(label);
+      const steps = 50;
+      for (let i = 0; i <= steps; i++) {
+        const N = minN + (maxN - minN) * i / steps;
+        const ll = rsoToLatLng(E, N);
+        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
+        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        const px = pt.x - topLeft.x;
+        const py = pt.y - topLeft.y;
+        
+        // Check if this point is near the bottom
+        if (py >= canvas.height - 40 && py <= canvas.height) {
+          const dist = Math.abs(py - bottomY);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestPt = {x: px, y: bottomY};
+          }
+        }
+      }
       
-      // Background with border
-      ctx.fillStyle = 'rgba(13, 17, 23, 0.9)';
-      ctx.fillRect(x - metrics.width/2 - 6, y - 9, metrics.width + 12, 18);
-      ctx.strokeStyle = 'rgba(63, 185, 80, 0.6)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x - metrics.width/2 - 6, y - 9, metrics.width + 12, 18);
-      
-      ctx.fillStyle = 'rgba(63, 185, 80, 1)';
-      ctx.fillText(label, x, y);
+      if (bestPt && bestPt.x >= 0 && bestPt.x <= canvas.width) {
+        const label = `E ${(E/1000).toFixed(E >= 10000 ? 0 : 1)}`;
+        const metrics = ctx.measureText(label);
+        
+        // Background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(bestPt.x - metrics.width/2 - 5, bestPt.y - 8, metrics.width + 10, 16);
+        ctx.strokeStyle = 'rgba(63, 185, 80, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bestPt.x - metrics.width/2 - 5, bestPt.y - 8, metrics.width + 10, 16);
+        
+        ctx.fillStyle = 'rgba(35, 134, 54, 1)';
+        ctx.fillText(label, bestPt.x, bestPt.y);
+      }
     }
     
-    // Northing labels (left edge)
+    // Northing labels at LEFT edge
     ctx.textAlign = 'left';
     for (let N = minN; N <= maxN; N += gridSpacing) {
-      const ll = rsoToLatLng(minE, N);
-      if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
-      const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-      const x = 15;
-      const y = pt.y - topLeft.y;
+      // Find where this northing line intersects the left of the map
+      let bestPt = null;
+      let bestDist = Infinity;
+      const leftX = 10;
       
-      const label = `N ${(N/1000).toFixed(0)}`;
-      const metrics = ctx.measureText(label);
+      const steps = 50;
+      for (let i = 0; i <= steps; i++) {
+        const E = minE + (maxE - minE) * i / steps;
+        const ll = rsoToLatLng(E, N);
+        if (ll.lat < -5 || ll.lat > 15 || ll.lng < 90 || ll.lng > 115) continue;
+        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        const px = pt.x - topLeft.x;
+        const py = pt.y - topLeft.y;
+        
+        // Check if this point is near the left edge
+        if (px >= 0 && px <= 50) {
+          const dist = Math.abs(px - leftX);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestPt = {x: leftX, y: py};
+          }
+        }
+      }
       
-      ctx.fillStyle = 'rgba(13, 17, 23, 0.9)';
-      ctx.fillRect(x - 6, y - 9, metrics.width + 12, 18);
-      ctx.strokeStyle = 'rgba(63, 185, 80, 0.6)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x - 6, y - 9, metrics.width + 12, 18);
-      
-      ctx.fillStyle = 'rgba(63, 185, 80, 1)';
-      ctx.fillText(label, x, y);
+      if (bestPt && bestPt.y >= 0 && bestPt.y <= canvas.height) {
+        const label = `N ${(N/1000).toFixed(N >= 10000 ? 0 : 1)}`;
+        const metrics = ctx.measureText(label);
+        
+        // Background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(bestPt.x - 3, bestPt.y - 8, metrics.width + 10, 16);
+        ctx.strokeStyle = 'rgba(63, 185, 80, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bestPt.x - 3, bestPt.y - 8, metrics.width + 10, 16);
+        
+        ctx.fillStyle = 'rgba(35, 134, 54, 1)';
+        ctx.fillText(label, bestPt.x + 2, bestPt.y);
+      }
     }
   }
 });
@@ -626,7 +676,7 @@ function initMap() {
   map = L.map('map').setView([4.2, 102.0], 7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 18
+    maxZoom: 19
   }).addTo(map);
 
   // Add RSO grid overlay
