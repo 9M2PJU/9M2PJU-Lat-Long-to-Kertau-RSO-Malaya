@@ -21,13 +21,46 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;line-height:1.6;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.25;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.1;pointer-events:none;}
 
-.page{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:2.5rem 1.25rem 5rem;}
+.container{display:flex;min-height:100vh;}
+
+/* Left panel */
+.sidebar{width:100%;max-width:500px;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:2.5rem 1.25rem;flex-shrink:0;}
+.page{position:relative;z-index:1;}
+
+/* Right map panel */
+.map-container{flex:1;display:none;position:relative;background:var(--bg3);}
+.map-container.active{display:block;}
+
+#map{width:100%;height:100%;}
+
+.map-info-box{position:absolute;top:16px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;z-index:1000;min-width:240px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.map-info-box .info-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.map-info-box .info-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.map-info-box .info-row:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.map-info-box .info-label-small{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.04em;}
+.map-info-box .info-value{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--green);}
+.map-info-box .info-value-small{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);}
+
+/* Toggle button */
+.toggle-map-btn{position:fixed;bottom:20px;right:20px;padding:10px 16px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;z-index:999;display:none;transition:all .2s;}
+.toggle-map-btn:hover{background:#2ea043;transform:translateY(-2px);}
+@media(min-width:1200px){
+  .container{flex-direction:row;}
+  .sidebar{width:420px;max-width:none;padding:2.5rem 1.5rem;}
+  .map-container.active{display:block;}
+  .toggle-map-btn{display:none;}
+}
+@media(max-width:1199px){
+  .toggle-map-btn{display:block;}
+  .sidebar.hidden{display:none;}
+  .map-container.active{display:block;}
+}
 
 /* Header */
 .header{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
-.badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid var(--green2);background:var(--green-dim);padding:4px 12px;border-radius:20px;margin-bottom:1rem;}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid var(--green2);background:var(--green-dim);padding:6px 10px;border-radius:var(--r);}
 h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin-bottom:.4rem;}
 h1 em{font-style:italic;color:var(--green);}
 .subtitle{color:var(--text2);font-size:14px;}
@@ -52,7 +85,7 @@ h1 em{font-style:italic;color:var(--green);}
 .input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
 .field{display:flex;flex-direction:column;gap:5px;}
 label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;}
-input[type=number]{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;-moz-appearance:textfield;}
+input[type=number]{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 input[type=number]:focus{border-color:var(--green);}
 input[type=number]::placeholder{color:var(--text3);}
@@ -65,7 +98,7 @@ input[type=number]::placeholder{color:var(--text3);}
 .grid-hint{font-size:11px;color:var(--text3);margin-top:4px;}
 
 /* Button */
-.btn-convert{width:100%;padding:12px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.02em;transition:all .2s;margin-top:.25rem;}
+.btn-convert{width:100%;padding:12px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;}
 .btn-convert:hover{background:#2ea043;transform:translateY(-1px);}
 .btn-convert:active{transform:scale(.99);}
 
@@ -74,8 +107,7 @@ input[type=number]::placeholder{color:var(--text3);}
 .ex-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;padding:4px 11px;cursor:pointer;transition:all .2s;}
 .ex-btn:hover{border-color:var(--green2);color:var(--green);}
 
-/* Map */
-#map{height:340px;border-radius:var(--rl);border:1px solid var(--border);overflow:hidden;background:var(--bg3);}
+/* Map hint */
 .map-hint{font-size:11px;color:var(--text3);margin-top:8px;text-align:center;}
 
 /* Results */
@@ -128,6 +160,10 @@ footer a:hover{color:var(--text);}
 </style>
 </head>
 <body>
+<div class="container">
+
+<!-- LEFT SIDEBAR -->
+<div class="sidebar">
 <div class="page">
 
 <div class="header">
@@ -216,11 +252,11 @@ footer a:hover{color:var(--text);}
       <div class="input-row">
         <div class="field">
           <label>6-Digit Grid (EEE NNN)</label>
-          <input type="text" id="gr-6" placeholder="e.g. 411 349" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid6()" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+          <input type="text" id="gr-6" placeholder="e.g. 411 349" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid6()">
         </div>
         <div class="field">
           <label>8-Digit Grid (EEEE NNNN)</label>
-          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid8()" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid8()">
         </div>
       </div>
     </div>
@@ -237,13 +273,6 @@ footer a:hover{color:var(--text);}
   </div>
 
   <div class="err" id="err-box"></div>
-</div>
-
-<!-- MAP CARD -->
-<div class="card" style="animation-delay:.1s">
-  <div class="card-title">Map — OpenStreetMap</div>
-  <div id="map"></div>
-  <p class="map-hint">📍 Click anywhere on the map to get coordinates</p>
 </div>
 
 <!-- RESULT CARD -->
@@ -287,7 +316,7 @@ footer a:hover{color:var(--text);}
   <div class="card-title">Datum Notes</div>
   <div class="note">
     <strong>Kertau 1948 Datum:</strong> This app uses the Kertau 1948 datum / Modified Everest ellipsoid (EPSG:3168) — same as the official topographic maps of Peninsular Malaysia.<br><br>
-    <strong>WGS84 Difference:</strong> Modern GPS and Google Maps use the WGS84 datum. The difference can reach <strong>~150–200 meters</strong>. Do not input GPS coordinates directly without datum transformation if high precision is required.<br><br>
+    <strong>WGS84 Difference:</strong> Modern GPS and Google Maps use the WGS84 datum. The difference can reach <strong>~150–200 meters</strong>. Do not input GPS coordinates directly without datum conversion.<br><br>
     <strong>Coverage:</strong> Peninsular Malaysia only — Lat: 1°–7.5°N, Long: 99°–104.5°E.
   </div>
 </div>
@@ -304,16 +333,54 @@ footer a:hover{color:var(--text);}
 </footer>
 
 </div><!-- .page -->
+</div><!-- .sidebar -->
+
+<!-- RIGHT MAP PANEL -->
+<div class="map-container active" id="map-container">
+  <div id="map"></div>
+  <div class="map-info-box" id="map-info-box" style="display:none;">
+    <div class="info-label">Current Location</div>
+    <div class="info-row">
+      <span class="info-label-small">Easting (E)</span>
+      <span class="info-value" id="info-easting">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label-small">Northing (N)</span>
+      <span class="info-value" id="info-northing">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label-small">8-Digit Grid</span>
+      <span class="info-value-small" id="info-grid8">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label-small">6-Digit Grid</span>
+      <span class="info-value-small" id="info-grid6">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label-small">Latitude</span>
+      <span class="info-value-small" id="info-lat">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label-small">Longitude</span>
+      <span class="info-value-small" id="info-lng">—</span>
+    </div>
+  </div>
+  <p class="map-hint">📍 Click anywhere on the map to get coordinates</p>
+</div>
+
+</div><!-- .container -->
+
+<button class="toggle-map-btn" onclick="toggleMapView()" id="toggle-map-btn">📍 View Map</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── State ───────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────
 let mode = 'll'; // 'll' = latlong→grid, 'gr' = grid→latlong
 let activeTab = 'dd';
 let lastR = {};
 let map, marker;
 
-// ── Map init ─────────────────────────────────────────────────────────────────
+// ── Map init ────────────────────────────────────────────────────────────
 function initMap() {
   map = L.map('map').setView([4.2, 102.0], 7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -344,6 +411,15 @@ function initMap() {
     }
   });
 
+  map.on('mousemove', function(e) {
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) {
+      document.getElementById('map-info-box').style.display = 'none';
+      return;
+    }
+    updateMapInfoBox(lat, lng);
+  });
+
   function placeMarker(lat, lng) {
     if (marker) map.removeLayer(marker);
     const {E, N} = latLngToRSO(lat, lng);
@@ -367,7 +443,39 @@ function initMap() {
   window.placeMarker = placeMarker;
 }
 
-// ── RSO Math ─────────────────────────────────────────────────────────────────
+// ── Update map info box ────────────────────────────────────────────────────────
+function updateMapInfoBox(lat, lng) {
+  const {E, N} = latLngToRSO(lat, lng);
+  const g6 = fmtGrid(E, N, 6);
+  const g8 = fmtGrid(E, N, 8);
+  
+  document.getElementById('info-easting').textContent = Math.round(E).toLocaleString('en-US');
+  document.getElementById('info-northing').textContent = Math.round(N).toLocaleString('en-US');
+  document.getElementById('info-grid8').textContent = g8;
+  document.getElementById('info-grid6').textContent = g6;
+  document.getElementById('info-lat').textContent = lat.toFixed(6) + '° N';
+  document.getElementById('info-lng').textContent = lng.toFixed(6) + '° E';
+  document.getElementById('map-info-box').style.display = 'block';
+}
+
+// ── Toggle map view (mobile) ────────────────────────────────────────────
+function toggleMapView() {
+  const sidebar = document.querySelector('.sidebar');
+  const mapContainer = document.getElementById('map-container');
+  const btn = document.getElementById('toggle-map-btn');
+  
+  sidebar.classList.toggle('hidden');
+  mapContainer.classList.toggle('active');
+  
+  if (mapContainer.classList.contains('active')) {
+    btn.textContent = '◀ Back';
+    setTimeout(() => map.invalidateSize(), 300);
+  } else {
+    btn.textContent = '📍 View Map';
+  }
+}
+
+// ── RSO Math ────────────────────────────────────────────────────────────
 const RSO = {
   a: 6377304.063, b: 6356103.039,
   phi0: 4*Math.PI/180, lamc: 102.25*Math.PI/180,
@@ -446,7 +554,7 @@ function rsoToLatLng(E, N) {
   return { lat: phi*180/Math.PI, lng: lam2*180/Math.PI };
 }
 
-// ── Grid helpers ─────────────────────────────────────────────────────────────
+// ── Grid helpers ───────────────────────────────────────────────────────────
 function fmtGrid(E,N,d) {
   const ei=Math.round(E), ni=Math.round(N);
   return d===6
@@ -462,7 +570,7 @@ function toDMS(deg) {
   return `${d}° ${m}' ${s}"`;
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ── UI helpers ───────────────────────────────────────────────────────────
 function showErr(msg) {
   const el=document.getElementById('err-box');
   el.textContent=msg; el.style.display='block';
@@ -533,7 +641,7 @@ function parseGrid8() {
   }
 }
 
-// ── Convert LL → Grid ─────────────────────────────────────────────────────────
+// ── Convert LL → Grid ────────────────────────────────────────────────────────
 function doConvert() {
   clearErr();
   const {lat,lng}=getLL();
@@ -574,7 +682,7 @@ function runLL(lat,lng) {
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
 
-// ── Convert Grid → LL ─────────────────────────────────────────────────────────
+// ── Convert Grid → LL ────────────────────────────────────────────────────────
 function doConvertGR() {
   clearErr();
   const E=parseFloat(document.getElementById('gr-e').value);
@@ -617,7 +725,7 @@ function runGR(E,N) {
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
 
-// ── Copy ──────────────────────────────────────────────────────────────────────
+// ── Copy ─────────────────────────────────────────────────────────────
 function cp(type) {
   const map2={
     'grid8': lastR.g8,
@@ -636,7 +744,7 @@ function cp(type) {
   }).catch(()=>{});
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', initMap);
 document.addEventListener('keydown', e=>{ if(e.key==='Enter') mode==='ll' ? doConvert() : doConvertGR(); });
 </script>
