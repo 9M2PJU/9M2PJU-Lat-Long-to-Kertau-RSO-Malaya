@@ -25,11 +25,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 .container{display:flex;min-height:100vh;width:100%;gap:0;}
 
-/* Left panel */
 .sidebar{width:100%;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:2.5rem 1.25rem;flex-shrink:0;scroll-behavior:smooth;}
 .page{position:relative;z-index:1;}
 
-/* Right map panel */
 .map-container{display:none;position:relative;flex:1;background:var(--bg3);}
 .map-container.active{display:flex;flex-direction:column;}
 
@@ -43,21 +41,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .map-info-box .info-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--green);}
 .map-info-box .info-value-small{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
 
-/* Grid labels */
-.grid-label {
-  position: absolute;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: rgba(63, 185, 80, 0.7);
-  pointer-events: none;
-  background: rgba(13, 17, 23, 0.8);
-  padding: 2px 4px;
-  border-radius: 2px;
-  white-space: nowrap;
-  border: 1px solid rgba(63, 185, 80, 0.3);
-}
+/* Grid controls */
+.grid-controls{position:absolute;bottom:20px;left:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px;z-index:1000;display:flex;gap:6px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.grid-controls label{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;}
+.grid-controls select{background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:4px 8px;cursor:pointer;outline:none;}
+.grid-controls select:focus{border-color:var(--green);}
+.grid-toggle{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;cursor:pointer;transition:all .2s;}
+.grid-toggle:hover{border-color:var(--green);color:var(--green);}
+.grid-toggle.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
 
-/* Toggle button */
 .toggle-map-btn{position:fixed;bottom:20px;right:20px;padding:10px 16px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;z-index:999;}
 .toggle-map-btn:hover{background:#2ea043;transform:translateY(-2px);}
 
@@ -73,30 +65,25 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   .map-container.active{display:flex;}
 }
 
-/* Header */
 .header{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
 .badge{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid var(--green2);background:var(--green-dim);border-radius:var(--r);padding:6px 10px;}
 h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.15;margin-bottom:.4rem;}
 h1 em{font-style:italic;color:var(--green);}
 .subtitle{color:var(--text2);font-size:14px;}
 
-/* Mode toggle */
 .mode-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:5px;gap:5px;margin-bottom:1.5rem;}
 .mode-btn{flex:1;background:none;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:400;padding:10px 8px;border-radius:9px;cursor:pointer;transition:all .2s;text-align:center;}
 .mode-btn.active{background:var(--bg2);color:var(--text);border:1px solid var(--border2);font-weight:500;}
 .mode-btn .dir{font-family:'DM Mono',monospace;font-size:11px;display:block;color:var(--green);margin-top:2px;}
 
-/* Card */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.25rem;animation:fadeUp .5s ease both;}
 .card-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;}
 .card-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-/* Tabs (DD/DMS) */
 .tabs{display:flex;background:var(--bg3);border-radius:var(--r);padding:4px;gap:4px;margin-bottom:1.25rem;}
 .tab{flex:1;background:none;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;padding:7px 10px;border-radius:6px;cursor:pointer;transition:all .2s;}
 .tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border);font-weight:500;}
 
-/* Inputs */
 .input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
 .field{display:flex;flex-direction:column;gap:5px;}
 label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;}
@@ -108,21 +95,17 @@ input[type=number]::placeholder{color:var(--text3);}
 .dms-row input{text-align:center;}
 .field-label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px;display:block;}
 
-/* Grid ref inputs */
 .grid-input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;}
 .grid-hint{font-size:11px;color:var(--text3);margin-top:4px;}
 
-/* Button */
 .btn-convert{width:100%;padding:12px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;}
 .btn-convert:hover{background:#2ea043;transform:translateY(-1px);}
 .btn-convert:active{transform:scale(.99);}
 
-/* Examples */
 .example-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:1rem;}
 .ex-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;padding:4px 11px;cursor:pointer;transition:all .2s;}
 .ex-btn:hover{border-color:var(--green2);color:var(--green);}
 
-/* Results */
 .result-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .rtile{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;}
 .rtile .rl{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
@@ -142,7 +125,6 @@ input[type=number]::placeholder{color:var(--text3);}
 .btn-copy{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
 .btn-copy:hover{border-color:var(--border2);color:var(--text);}
 
-/* Error / note */
 .err{background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-top:1rem;display:none;}
 .note{background:var(--blue-dim);border:1px solid #1f4068;border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.75;}
 .note strong{color:var(--blue);font-weight:500;}
@@ -158,7 +140,6 @@ footer a:hover{color:var(--text);}
   .copy-row{flex-direction:column;}
 }
 
-/* Custom Leaflet Popup styling for dark mode */
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
   background: var(--bg2) !important;
   color: var(--text) !important;
@@ -169,12 +150,16 @@ footer a:hover{color:var(--text);}
 .leaflet-popup-content {
   margin: 12px 16px !important;
 }
+
+/* Dark map tiles filter */
+.leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(0.85) hue-rotate(200deg) saturate(0.3) brightness(0.95);
+}
 </style>
 </head>
 <body>
 <div class="container">
 
-<!-- LEFT SIDEBAR -->
 <div class="sidebar" id="sidebar">
 <div class="page">
 
@@ -184,7 +169,6 @@ footer a:hover{color:var(--text);}
   <p class="subtitle">Convert Lat/Long coordinates ⇄ Kertau 1948 Topographic Grid Reference · Peninsular Malaysia</p>
 </div>
 
-<!-- Mode toggle -->
 <div class="mode-toggle">
   <button class="mode-btn active" id="btn-mode-ll" onclick="setMode('ll')">
     Lat/Long → RSO Grid
@@ -196,10 +180,8 @@ footer a:hover{color:var(--text);}
   </button>
 </div>
 
-<!-- INPUT CARD -->
 <div class="card" style="animation-delay:.05s">
 
-  <!-- === MODE A: Lat/Long → Grid === -->
   <div id="panel-ll">
     <div class="card-title">Input Coordinates (Lat/Long)</div>
     <div class="tabs">
@@ -244,7 +226,6 @@ footer a:hover{color:var(--text);}
     </div>
   </div>
 
-  <!-- === MODE B: Grid RSO → Lat/Long === -->
   <div id="panel-gr" style="display:none">
     <div class="card-title">Input RSO Grid Reference</div>
     <div class="grid-input-row">
@@ -287,7 +268,6 @@ footer a:hover{color:var(--text);}
   <div class="err" id="err-box"></div>
 </div>
 
-<!-- RESULT CARD -->
 <div class="card" id="result-card" style="display:none;animation-delay:.15s">
   <div class="card-title">Results</div>
   <div id="result-ll-section">
@@ -323,7 +303,6 @@ footer a:hover{color:var(--text);}
   </div>
 </div>
 
-<!-- NOTE -->
 <div class="card" style="animation-delay:.2s">
   <div class="card-title">Datum Notes</div>
   <div class="note">
@@ -344,12 +323,26 @@ footer a:hover{color:var(--text);}
   </span>
 </footer>
 
-</div><!-- .page -->
-</div><!-- .sidebar -->
+</div>
+</div>
 
-<!-- RIGHT MAP PANEL -->
 <div class="map-container active" id="map-container">
   <div id="map"></div>
+  
+  <!-- Grid Controls -->
+  <div class="grid-controls">
+    <button class="grid-toggle active" id="grid-toggle-btn" onclick="toggleGrid()">Grid</button>
+    <label>Density:</label>
+    <select id="grid-density" onchange="updateGrid()">
+      <option value="auto">Auto</option>
+      <option value="50000">50 km</option>
+      <option value="20000">20 km</option>
+      <option value="10000">10 km</option>
+      <option value="5000">5 km</option>
+      <option value="1000">1 km</option>
+    </select>
+  </div>
+  
   <div class="map-info-box" id="map-info-box" style="display:none;">
     <span class="info-label">📍 Current Location</span>
     <div class="info-row">
@@ -379,213 +372,19 @@ footer a:hover{color:var(--text);}
   </div>
 </div>
 
-</div><!-- .container -->
+</div>
 
 <button class="toggle-map-btn" onclick="toggleMapView()" id="toggle-map-btn">📍 View Map</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── State ─────────────────────────────────────────────────────────────
-let mode = 'll'; // 'll' = latlong→grid, 'gr' = grid→latlong
+let mode = 'll';
 let activeTab = 'dd';
 let lastR = {};
-let map, marker, gridLayer;
-
-// ── Map init ────────────────────────────────────────────────────────────
-function initMap() {
-  map = L.map('map').setView([4.2, 102.0], 7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 18
-  }).addTo(map);
-
-  // Add RSO grid layer
-  addRSOGridLayer();
-
-  const pinIcon = L.divIcon({
-    className: '',
-    html: `<div style="width:14px;height:14px;background:#3fb950;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 3px rgba(63,185,80,.35)"></div>`,
-    iconSize: [14,14], iconAnchor: [7,7]
-  });
-
-  map.on('click', function(e) {
-    const lat = e.latlng.lat, lng = e.latlng.lng;
-    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) {
-      return;
-    }
-    if (mode === 'll') {
-      setMode('ll');
-      switchTab('dd');
-      document.getElementById('dd-lat').value = lat.toFixed(6);
-      document.getElementById('dd-lng').value = lng.toFixed(6);
-      runLL(lat, lng);
-    } else {
-      const {E, N} = latLngToRSO(lat, lng);
-      document.getElementById('gr-e').value = Math.round(E);
-      document.getElementById('gr-n').value = Math.round(N);
-      runGR(Math.round(E), Math.round(N));
-    }
-    // Keep map centered on clicked location
-    map.setView([lat, lng], Math.max(map.getZoom(), 12));
-  });
-
-  map.on('mousemove', function(e) {
-    const lat = e.latlng.lat, lng = e.latlng.lng;
-    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) {
-      document.getElementById('map-info-box').style.display = 'none';
-      return;
-    }
-    updateMapInfoBox(lat, lng);
-  });
-
-  map.on('mouseleave', function() {
-    document.getElementById('map-info-box').style.display = 'none';
-  });
-
-  map.on('zoom', () => {
-    if (gridLayer) {
-      map.removeLayer(gridLayer);
-      addRSOGridLayer();
-    }
-  });
-
-  function placeMarker(lat, lng) {
-    if (marker) map.removeLayer(marker);
-    const {E, N} = latLngToRSO(lat, lng);
-    const eastingStr = Math.round(E).toLocaleString('en-US');
-    const northingStr = Math.round(N).toLocaleString('en-US');
-    const popupContent = `
-      <div style="font-family:'Outfit', sans-serif; font-size:11px; color:var(--text); line-height:1.4;">
-        <strong style="color:var(--green); display:block; margin-bottom:4px; font-family:'DM Mono', monospace; font-size:10px; letter-spacing:0.05em;">📍 COORDINATES</strong>
-        <table style="width:100%; border-collapse:collapse;">
-          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Easting (E):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${eastingStr} m</td></tr>
-          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Northing (N):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${northingStr} m</td></tr>
-          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap; padding-top:4px;">Latitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500; padding-top:4px;">${lat.toFixed(6)}° N</td></tr>
-          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Longitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${lng.toFixed(6)}° E</td></tr>
-        </table>
-      </div>
-    `;
-    marker = L.marker([lat, lng], {icon: pinIcon}).addTo(map)
-      .bindPopup(popupContent, { closeButton: false, offset: [0, -5] })
-      .openPopup();
-  }
-  window.placeMarker = placeMarker;
-}
-
-// ── Add RSO Grid Layer ────────────────────────────────────────────────────────
-function addRSOGridLayer() {
-  const zoom = map.getZoom();
-  let gridSpacing;
-  
-  // Determine grid spacing based on zoom level
-  if (zoom < 8) {
-    gridSpacing = 50000; // 50 km
-  } else if (zoom < 10) {
-    gridSpacing = 20000; // 20 km
-  } else if (zoom < 12) {
-    gridSpacing = 10000; // 10 km
-  } else {
-    gridSpacing = 5000; // 5 km
-  }
-
-  gridLayer = L.layerGroup();
-
-  // Draw grid lines and labels
-  const rsoMin_E = 100000, rsoMax_E = 900000;
-  const rsoMin_N = 0, rsoMax_N = 700000;
-
-  // Easting lines (vertical)
-  for (let E = rsoMin_E; E <= rsoMax_E; E += gridSpacing) {
-    const latlngs = [];
-    for (let N = rsoMin_N; N <= rsoMax_N; N += 5000) {
-      const {lat, lng} = rsoToLatLng(E, N);
-      latlngs.push([lat, lng]);
-    }
-    
-    if (latlngs.length > 0) {
-      const polyline = L.polyline(latlngs, {
-        color: 'rgba(63, 185, 80, 0.3)',
-        weight: 1,
-        opacity: 0.5,
-        dashArray: '5, 5'
-      }).addTo(gridLayer);
-
-      // Add easting label at middle of line
-      const labelCoord = latlngs[Math.floor(latlngs.length / 2)];
-      const label = L.marker(labelCoord, {
-        icon: L.divIcon({
-          className: 'grid-label',
-          html: `E ${(E/1000).toFixed(0)}k`,
-          iconSize: [50, 16],
-          iconAnchor: [25, 8]
-        })
-      }).addTo(gridLayer);
-    }
-  }
-
-  // Northing lines (horizontal)
-  for (let N = rsoMin_N; N <= rsoMax_N; N += gridSpacing) {
-    const latlngs = [];
-    for (let E = rsoMin_E; E <= rsoMax_E; E += 5000) {
-      const {lat, lng} = rsoToLatLng(E, N);
-      latlngs.push([lat, lng]);
-    }
-    
-    if (latlngs.length > 0) {
-      const polyline = L.polyline(latlngs, {
-        color: 'rgba(63, 185, 80, 0.3)',
-        weight: 1,
-        opacity: 0.5,
-        dashArray: '5, 5'
-      }).addTo(gridLayer);
-
-      // Add northing label on left side of line
-      const labelCoord = latlngs[Math.floor(latlngs.length / 2)];
-      const label = L.marker(labelCoord, {
-        icon: L.divIcon({
-          className: 'grid-label',
-          html: `N ${(N/1000).toFixed(0)}k`,
-          iconSize: [50, 16],
-          iconAnchor: [25, 8]
-        })
-      }).addTo(gridLayer);
-    }
-  }
-
-  gridLayer.addTo(map);
-}
-
-// ── Update map info box ────────────────────────────────────────────────────────
-function updateMapInfoBox(lat, lng) {
-  const {E, N} = latLngToRSO(lat, lng);
-  const g6 = fmtGrid(E, N, 6);
-  const g8 = fmtGrid(E, N, 8);
-  
-  document.getElementById('info-easting').textContent = Math.round(E).toLocaleString('en-US');
-  document.getElementById('info-northing').textContent = Math.round(N).toLocaleString('en-US');
-  document.getElementById('info-grid8').textContent = g8;
-  document.getElementById('info-grid6').textContent = g6;
-  document.getElementById('info-lat').textContent = lat.toFixed(6) + '° N';
-  document.getElementById('info-lng').textContent = lng.toFixed(6) + '° E';
-  document.getElementById('map-info-box').style.display = 'block';
-}
-
-// ── Toggle map view (mobile) ────────────────────────────────────────────
-function toggleMapView() {
-  const sidebar = document.querySelector('.sidebar');
-  const mapContainer = document.getElementById('map-container');
-  const btn = document.getElementById('toggle-map-btn');
-  
-  sidebar.classList.toggle('hidden');
-  mapContainer.classList.toggle('active');
-  
-  if (mapContainer.classList.contains('active')) {
-    btn.textContent = '◀ Back';
-    setTimeout(() => map.invalidateSize(), 300);
-  } else {
-    btn.textContent = '📍 View Map';
-  }
-}
+let map, marker;
+let gridEnabled = true;
+let gridCanvas = null;
+let gridDensityMode = 'auto';
 
 // ── RSO Math ────────────────────────────────────────────────────────────
 const RSO = {
@@ -655,8 +454,6 @@ function rsoToLatLng(E, N) {
     if (Math.abs(next-phi) < 1e-11) { phi=next; break; }
     phi = next;
   }
-  const lam = lam0 - Math.atan2(-Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*Math.cos(gam0)*T3,
-    Math.sin(gam0)*T3 - Math.cos(gam0)*Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*T3) / B;
   const lam2 = lam0 + Math.atan2(
     S2*Math.cos(gam0) - V2*Math.sin(gam0),
     Math.cos(B*u/A)
@@ -664,7 +461,281 @@ function rsoToLatLng(E, N) {
   return { lat: phi*180/Math.PI, lng: lam2*180/Math.PI };
 }
 
-// ── Grid helpers ───────────────────────────────────────────────────────────
+// ── Canvas Grid Overlay ─────────────────────────────────────────────────────
+L.RSOGrid = L.Layer.extend({
+  onAdd: function(map) {
+    this._map = map;
+    this._canvas = L.DomUtil.create('canvas', 'rso-grid-canvas');
+    this._canvas.style.position = 'absolute';
+    this._canvas.style.top = '0';
+    this._canvas.style.left = '0';
+    this._canvas.style.pointerEvents = 'none';
+    this._canvas.style.zIndex = '400';
+    
+    map.getPanes().overlayPane.appendChild(this._canvas);
+    map.on('moveend zoomend resize', this._update, this);
+    this._update();
+  },
+  
+  onRemove: function(map) {
+    L.DomUtil.remove(this._canvas);
+    map.off('moveend zoomend resize', this._update, this);
+  },
+  
+  _update: function() {
+    if (!gridEnabled) {
+      this._canvas.style.display = 'none';
+      return;
+    }
+    this._canvas.style.display = 'block';
+    
+    const map = this._map;
+    const size = map.getSize();
+    const canvas = this._canvas;
+    
+    canvas.width = size.x;
+    canvas.height = size.y;
+    
+    const bounds = map.getBounds();
+    const topLeft = map.latLngToContainerPoint(bounds.getNorthWest());
+    
+    L.DomUtil.setPosition(canvas, topLeft);
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Determine grid spacing
+    let gridSpacing;
+    if (gridDensityMode === 'auto') {
+      const zoom = map.getZoom();
+      if (zoom < 8) gridSpacing = 50000;
+      else if (zoom < 10) gridSpacing = 20000;
+      else if (zoom < 12) gridSpacing = 10000;
+      else if (zoom < 14) gridSpacing = 5000;
+      else gridSpacing = 1000;
+    } else {
+      gridSpacing = parseInt(gridDensityMode);
+    }
+    
+    // Get visible RSO bounds
+    const nw = bounds.getNorthWest();
+    const se = bounds.getSouthEast();
+    const rsoNW = latLngToRSO(nw.lat, nw.lng);
+    const rsoSE = latLngToRSO(se.lat, se.lng);
+    
+    const minE = Math.floor(Math.min(rsoNW.E, rsoSE.E) / gridSpacing) * gridSpacing;
+    const maxE = Math.ceil(Math.max(rsoNW.E, rsoSE.E) / gridSpacing) * gridSpacing;
+    const minN = Math.floor(Math.min(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
+    const maxN = Math.ceil(Math.max(rsoNW.N, rsoSE.N) / gridSpacing) * gridSpacing;
+    
+    // Draw grid lines with better visibility
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(63, 185, 80, 0.5)';
+    ctx.setLineDash([6, 4]);
+    
+    // Easting lines (vertical)
+    for (let E = minE; E <= maxE; E += gridSpacing) {
+      ctx.beginPath();
+      let first = true;
+      for (let N = minN; N <= maxN; N += gridSpacing / 4) {
+        const ll = rsoToLatLng(E, N);
+        if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        if (first) {
+          ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
+          first = false;
+        } else {
+          ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
+        }
+      }
+      ctx.stroke();
+    }
+    
+    // Northing lines (horizontal)
+    for (let N = minN; N <= maxN; N += gridSpacing) {
+      ctx.beginPath();
+      let first = true;
+      for (let E = minE; E <= maxE; E += gridSpacing / 4) {
+        const ll = rsoToLatLng(E, N);
+        if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        if (first) {
+          ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y);
+          first = false;
+        } else {
+          ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
+        }
+      }
+      ctx.stroke();
+    }
+    
+    // Draw labels
+    ctx.setLineDash([]);
+    ctx.font = 'bold 11px "DM Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Easting labels (bottom edge)
+    for (let E = minE; E <= maxE; E += gridSpacing) {
+      const ll = rsoToLatLng(E, minN);
+      if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+      const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+      const x = pt.x - topLeft.x;
+      const y = canvas.height - 20;
+      
+      const label = `E ${(E/1000).toFixed(0)}`;
+      const metrics = ctx.measureText(label);
+      
+      // Background with border
+      ctx.fillStyle = 'rgba(13, 17, 23, 0.9)';
+      ctx.fillRect(x - metrics.width/2 - 6, y - 9, metrics.width + 12, 18);
+      ctx.strokeStyle = 'rgba(63, 185, 80, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x - metrics.width/2 - 6, y - 9, metrics.width + 12, 18);
+      
+      ctx.fillStyle = 'rgba(63, 185, 80, 1)';
+      ctx.fillText(label, x, y);
+    }
+    
+    // Northing labels (left edge)
+    ctx.textAlign = 'left';
+    for (let N = minN; N <= maxN; N += gridSpacing) {
+      const ll = rsoToLatLng(minE, N);
+      if (ll.lat < 0 || ll.lat > 10 || ll.lng < 95 || ll.lng > 110) continue;
+      const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+      const x = 15;
+      const y = pt.y - topLeft.y;
+      
+      const label = `N ${(N/1000).toFixed(0)}`;
+      const metrics = ctx.measureText(label);
+      
+      ctx.fillStyle = 'rgba(13, 17, 23, 0.9)';
+      ctx.fillRect(x - 6, y - 9, metrics.width + 12, 18);
+      ctx.strokeStyle = 'rgba(63, 185, 80, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x - 6, y - 9, metrics.width + 12, 18);
+      
+      ctx.fillStyle = 'rgba(63, 185, 80, 1)';
+      ctx.fillText(label, x, y);
+    }
+  }
+});
+
+// ── Map init ────────────────────────────────────────────────────────────
+function initMap() {
+  map = L.map('map').setView([4.2, 102.0], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Add RSO grid overlay
+  gridCanvas = new L.RSOGrid();
+  gridCanvas.addTo(map);
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;background:#3fb950;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 3px rgba(63,185,80,.35)"></div>`,
+    iconSize: [14,14], iconAnchor: [7,7]
+  });
+
+  map.on('click', function(e) {
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) return;
+    
+    if (mode === 'll') {
+      setMode('ll');
+      switchTab('dd');
+      document.getElementById('dd-lat').value = lat.toFixed(6);
+      document.getElementById('dd-lng').value = lng.toFixed(6);
+      runLL(lat, lng);
+    } else {
+      const {E, N} = latLngToRSO(lat, lng);
+      document.getElementById('gr-e').value = Math.round(E);
+      document.getElementById('gr-n').value = Math.round(N);
+      runGR(Math.round(E), Math.round(N));
+    }
+    map.setView([lat, lng], Math.max(map.getZoom(), 12));
+  });
+
+  map.on('mousemove', function(e) {
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) {
+      document.getElementById('map-info-box').style.display = 'none';
+      return;
+    }
+    updateMapInfoBox(lat, lng);
+  });
+
+  map.on('mouseleave', function() {
+    document.getElementById('map-info-box').style.display = 'none';
+  });
+
+  function placeMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    const {E, N} = latLngToRSO(lat, lng);
+    const eastingStr = Math.round(E).toLocaleString('en-US');
+    const northingStr = Math.round(N).toLocaleString('en-US');
+    const popupContent = `
+      <div style="font-family:'Outfit', sans-serif; font-size:11px; color:var(--text); line-height:1.4;">
+        <strong style="color:var(--green); display:block; margin-bottom:4px; font-family:'DM Mono', monospace; font-size:10px; letter-spacing:0.05em;">📍 COORDINATES</strong>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Easting (E):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${eastingStr} m</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Northing (N):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${northingStr} m</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap; padding-top:4px;">Latitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500; padding-top:4px;">${lat.toFixed(6)}° N</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Longitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${lng.toFixed(6)}° E</td></tr>
+        </table>
+      </div>
+    `;
+    marker = L.marker([lat, lng], {icon: pinIcon}).addTo(map)
+      .bindPopup(popupContent, { closeButton: false, offset: [0, -5] })
+      .openPopup();
+  }
+  window.placeMarker = placeMarker;
+}
+
+function toggleGrid() {
+  gridEnabled = !gridEnabled;
+  const btn = document.getElementById('grid-toggle-btn');
+  btn.classList.toggle('active', gridEnabled);
+  if (gridCanvas) gridCanvas._update();
+}
+
+function updateGrid() {
+  gridDensityMode = document.getElementById('grid-density').value;
+  if (gridCanvas) gridCanvas._update();
+}
+
+function updateMapInfoBox(lat, lng) {
+  const {E, N} = latLngToRSO(lat, lng);
+  const g6 = fmtGrid(E, N, 6);
+  const g8 = fmtGrid(E, N, 8);
+  
+  document.getElementById('info-easting').textContent = Math.round(E).toLocaleString('en-US');
+  document.getElementById('info-northing').textContent = Math.round(N).toLocaleString('en-US');
+  document.getElementById('info-grid8').textContent = g8;
+  document.getElementById('info-grid6').textContent = g6;
+  document.getElementById('info-lat').textContent = lat.toFixed(6) + '° N';
+  document.getElementById('info-lng').textContent = lng.toFixed(6) + '° E';
+  document.getElementById('map-info-box').style.display = 'block';
+}
+
+function toggleMapView() {
+  const sidebar = document.querySelector('.sidebar');
+  const mapContainer = document.getElementById('map-container');
+  const btn = document.getElementById('toggle-map-btn');
+  
+  sidebar.classList.toggle('hidden');
+  mapContainer.classList.toggle('active');
+  
+  if (mapContainer.classList.contains('active')) {
+    btn.textContent = '◀ Back';
+    setTimeout(() => map.invalidateSize(), 300);
+  } else {
+    btn.textContent = '📍 View Map';
+  }
+}
+
 function fmtGrid(E,N,d) {
   const ei=Math.round(E), ni=Math.round(N);
   return d===6
@@ -680,7 +751,6 @@ function toDMS(deg) {
   return `${d}° ${m}' ${s}"`;
 }
 
-// ── UI helpers ───────────────────────────────────────────────────────────
 function showErr(msg) {
   const el=document.getElementById('err-box');
   el.textContent=msg; el.style.display='block';
@@ -705,7 +775,6 @@ function switchTab(t) {
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='dd')||(i===1&&t==='dms')));
 }
 
-// Get Lat/Lng from inputs
 function getLL() {
   if (activeTab==='dd') {
     return {lat:parseFloat(document.getElementById('dd-lat').value), lng:parseFloat(document.getElementById('dd-lng').value)};
@@ -751,7 +820,6 @@ function parseGrid8() {
   }
 }
 
-// ── Convert LL → Grid ────────────────────────────────────────────────────────
 function doConvert() {
   clearErr();
   const {lat,lng}=getLL();
@@ -767,20 +835,17 @@ function runLL(lat,lng) {
     const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
     lastR={E:Math.round(E),N:Math.round(N),g6,g8,lat,lng};
 
-    // Populate Easting/Northing & Grid
     document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
     document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
     document.getElementById('res-8digit').textContent=g8;
     document.getElementById('res-6digit').textContent=g6;
     document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
 
-    // Populate Lat/Long
     document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
     document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
     document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
     document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
 
-    // Display both sections and unified copy row
     document.getElementById('result-ll-section').style.display='';
     document.getElementById('result-gr-section').style.display='';
     document.getElementById('copy-row-all').style.display='flex';
@@ -788,14 +853,12 @@ function runLL(lat,lng) {
 
     placeMarker(lat,lng);
     
-    // Scroll result card into view in sidebar
     setTimeout(() => {
       document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
     }, 100);
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
 
-// ── Convert Grid → LL ────────────────────────────────────────────────────────
 function doConvertGR() {
   clearErr();
   const E=parseFloat(document.getElementById('gr-e').value);
@@ -813,20 +876,17 @@ function runGR(E,N) {
     const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
     lastR={lat,lng,E:Math.round(E),N:Math.round(N),g6,g8};
 
-    // Populate Lat/Long
     document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
     document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
     document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
     document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
 
-    // Populate Easting/Northing & Grid
     document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
     document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
     document.getElementById('res-8digit').textContent=g8;
     document.getElementById('res-6digit').textContent=g6;
     document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
 
-    // Display both sections and unified copy row
     document.getElementById('result-ll-section').style.display='';
     document.getElementById('result-gr-section').style.display='';
     document.getElementById('copy-row-all').style.display='flex';
@@ -834,14 +894,12 @@ function runGR(E,N) {
 
     placeMarker(lat,lng);
     
-    // Scroll result card into view in sidebar
     setTimeout(() => {
       document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
     }, 100);
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
 
-// ── Copy ─────────────────────────────────────────────────────────────
 function cp(type) {
   const map2={
     'grid8': lastR.g8,
@@ -854,13 +912,11 @@ function cp(type) {
   if (!text) return;
   navigator.clipboard.writeText(text).then(()=>{
     const btns=[...document.querySelectorAll('.btn-copy')];
-    const idx=['grid8','grid6','en','ll-dd','ll-dms'].indexOf(type)%btns.length;
     const btn=btns.find(b=>b.onclick?.toString().includes(`'${type}'`));
     if (btn) { const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o,1500); }
   }).catch(()=>{});
 }
 
-// ── Init ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', initMap);
 document.addEventListener('keydown', e=>{ if(e.key==='Enter') mode==='ll' ? doConvert() : doConvertGR(); });
 </script>
