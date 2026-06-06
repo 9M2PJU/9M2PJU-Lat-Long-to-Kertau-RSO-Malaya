@@ -113,6 +113,18 @@ footer a:hover{color:var(--text);}
   .gridbox .gv{font-size:20px;}
   .copy-row{flex-direction:column;}
 }
+
+/* Custom Leaflet Popup styling for dark mode */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: var(--bg2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important;
+  border-radius: var(--r) !important;
+}
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+}
 </style>
 </head>
 <body>
@@ -261,12 +273,10 @@ footer a:hover{color:var(--text);}
       <div class="gsmall"><div class="gl">Input coordinates</div><div class="gv" id="res-input" style="font-size:12px;color:var(--text2);margin-top:2px">—</div></div>
     </div>
   </div>
-  <div class="copy-row" id="copy-row-gr" style="display:none">
+  <div class="copy-row" id="copy-row-all" style="display:none; flex-wrap:wrap; gap:8px;">
     <button class="btn-copy" onclick="cp('grid8')">Copy Grid 8</button>
     <button class="btn-copy" onclick="cp('grid6')">Copy Grid 6</button>
     <button class="btn-copy" onclick="cp('en')">Copy E/N</button>
-  </div>
-  <div class="copy-row" id="copy-row-ll" style="display:none">
     <button class="btn-copy" onclick="cp('ll-dd')">Copy DD</button>
     <button class="btn-copy" onclick="cp('ll-dms')">Copy DMS</button>
   </div>
@@ -320,7 +330,6 @@ function initMap() {
   map.on('click', function(e) {
     const lat = e.latlng.lat, lng = e.latlng.lng;
     if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) return;
-    placeMarker(lat, lng);
     if (mode === 'll') {
       setMode('ll');
       switchTab('dd');
@@ -337,7 +346,23 @@ function initMap() {
 
   function placeMarker(lat, lng) {
     if (marker) map.removeLayer(marker);
-    marker = L.marker([lat, lng], {icon: pinIcon}).addTo(map);
+    const {E, N} = latLngToRSO(lat, lng);
+    const eastingStr = Math.round(E).toLocaleString('en-US');
+    const northingStr = Math.round(N).toLocaleString('en-US');
+    const popupContent = `
+      <div style="font-family:'Outfit', sans-serif; font-size:11px; color:var(--text); line-height:1.4;">
+        <strong style="color:var(--green); display:block; margin-bottom:4px; font-family:'DM Mono', monospace; font-size:10px; letter-spacing:0.05em;">📍 COORDINATES</strong>
+        <table style="width:100%; border-collapse:collapse;">
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Easting (E):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${eastingStr} m</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Northing (N):</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${northingStr} m</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap; padding-top:4px;">Latitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500; padding-top:4px;">${lat.toFixed(6)}° N</td></tr>
+          <tr><td style="color:var(--text2); padding-right:8px; white-space:nowrap;">Longitude:</td><td style="font-family:'DM Mono', monospace; font-weight:500;">${lng.toFixed(6)}° E</td></tr>
+        </table>
+      </div>
+    `;
+    marker = L.marker([lat, lng], {icon: pinIcon}).addTo(map)
+      .bindPopup(popupContent, { closeButton: false, offset: [0, -5] })
+      .openPopup();
   }
   window.placeMarker = placeMarker;
 }
@@ -524,15 +549,23 @@ function runLL(lat,lng) {
     const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
     lastR={E:Math.round(E),N:Math.round(N),g6,g8,lat,lng};
 
+    // Populate Easting/Northing & Grid
     document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
     document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
     document.getElementById('res-8digit').textContent=g8;
     document.getElementById('res-6digit').textContent=g6;
     document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
-    document.getElementById('result-ll-section').style.display='none';
+
+    // Populate Lat/Long
+    document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
+    document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
+    document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
+    document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
+
+    // Display both sections and unified copy row
+    document.getElementById('result-ll-section').style.display='';
     document.getElementById('result-gr-section').style.display='';
-    document.getElementById('copy-row-gr').style.display='flex';
-    document.getElementById('copy-row-ll').style.display='none';
+    document.getElementById('copy-row-all').style.display='flex';
     document.getElementById('result-card').style.display='';
 
     placeMarker(lat,lng);
@@ -556,17 +589,26 @@ function runGR(E,N) {
   try {
     const {lat,lng}=rsoToLatLng(E,N);
     if (lat<0.5||lat>8||lng<98||lng>106) { showErr('Coordinates are outside Peninsular Malaysia.'); return; }
-    lastR={lat,lng,E:Math.round(E),N:Math.round(N)};
-    lastR.g6=fmtGrid(E,N,6); lastR.g8=fmtGrid(E,N,8);
+    const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
+    lastR={lat,lng,E:Math.round(E),N:Math.round(N),g6,g8};
 
+    // Populate Lat/Long
     document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
     document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
     document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
     document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
+
+    // Populate Easting/Northing & Grid
+    document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
+    document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
+    document.getElementById('res-8digit').textContent=g8;
+    document.getElementById('res-6digit').textContent=g6;
+    document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
+
+    // Display both sections and unified copy row
     document.getElementById('result-ll-section').style.display='';
-    document.getElementById('result-gr-section').style.display='none';
-    document.getElementById('copy-row-ll').style.display='flex';
-    document.getElementById('copy-row-gr').style.display='none';
+    document.getElementById('result-gr-section').style.display='';
+    document.getElementById('copy-row-all').style.display='flex';
     document.getElementById('result-card').style.display='';
 
     placeMarker(lat,lng);
