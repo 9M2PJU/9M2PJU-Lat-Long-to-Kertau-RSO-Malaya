@@ -23,39 +23,40 @@
 body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;line-height:1.6;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.1;pointer-events:none;}
 
-.container{display:flex;min-height:100vh;}
+.container{display:flex;min-height:100vh;width:100%;}
 
 /* Left panel */
-.sidebar{width:100%;max-width:500px;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:2.5rem 1.25rem;flex-shrink:0;}
+.sidebar{width:100%;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:2.5rem 1.25rem;flex-shrink:0;}
 .page{position:relative;z-index:1;}
 
 /* Right map panel */
-.map-container{flex:1;display:none;position:relative;background:var(--bg3);}
-.map-container.active{display:block;}
+.map-container{display:none;position:relative;flex:1;background:var(--bg3);}
+.map-container.active{display:flex;flex-direction:column;}
 
-#map{width:100%;height:100%;}
+#map{width:100%;height:100%;flex:1;}
 
-.map-info-box{position:absolute;top:16px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;z-index:1000;min-width:240px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
-.map-info-box .info-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.map-info-box{position:absolute;top:16px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;z-index:1000;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.map-info-box .info-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block;}
 .map-info-box .info-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
 .map-info-box .info-row:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
-.map-info-box .info-label-small{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.04em;}
-.map-info-box .info-value{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--green);}
-.map-info-box .info-value-small{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);}
+.map-info-box .info-label-small{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;}
+.map-info-box .info-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--green);}
+.map-info-box .info-value-small{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
 
 /* Toggle button */
-.toggle-map-btn{position:fixed;bottom:20px;right:20px;padding:10px 16px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;z-index:999;display:none;transition:all .2s;}
+.toggle-map-btn{position:fixed;bottom:20px;right:20px;padding:10px 16px;background:var(--green2);border:1px solid var(--green);border-radius:var(--r);color:#fff;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;z-index:999;display:block;transition:all .2s;}
 .toggle-map-btn:hover{background:#2ea043;transform:translateY(-2px);}
+
 @media(min-width:1200px){
   .container{flex-direction:row;}
-  .sidebar{width:420px;max-width:none;padding:2.5rem 1.5rem;}
-  .map-container.active{display:block;}
-  .toggle-map-btn{display:none;}
+  .sidebar{width:420px;max-width:420px;padding:2.5rem 1.5rem;border-right:1px solid var(--border);}
+  .map-container.active{display:flex;}
+  .toggle-map-btn{display:none !important;}
 }
+
 @media(max-width:1199px){
-  .toggle-map-btn{display:block;}
   .sidebar.hidden{display:none;}
-  .map-container.active{display:block;}
+  .map-container.active{display:flex;}
 }
 
 /* Header */
@@ -106,9 +107,6 @@ input[type=number]::placeholder{color:var(--text3);}
 .example-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:1rem;}
 .ex-btn{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;padding:4px 11px;cursor:pointer;transition:all .2s;}
 .ex-btn:hover{border-color:var(--green2);color:var(--green);}
-
-/* Map hint */
-.map-hint{font-size:11px;color:var(--text3);margin-top:8px;text-align:center;}
 
 /* Results */
 .result-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
@@ -252,11 +250,11 @@ footer a:hover{color:var(--text);}
       <div class="input-row">
         <div class="field">
           <label>6-Digit Grid (EEE NNN)</label>
-          <input type="text" id="gr-6" placeholder="e.g. 411 349" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid6()">
+          <input type="text" id="gr-6" placeholder="e.g. 411 349" oninput="parseGrid6()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;">
         </div>
         <div class="field">
           <label>8-Digit Grid (EEEE NNNN)</label>
-          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;" oninput="parseGrid8()">
+          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" oninput="parseGrid8()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;transition:border-color .2s;">
         </div>
       </div>
     </div>
@@ -339,7 +337,7 @@ footer a:hover{color:var(--text);}
 <div class="map-container active" id="map-container">
   <div id="map"></div>
   <div class="map-info-box" id="map-info-box" style="display:none;">
-    <div class="info-label">Current Location</div>
+    <span class="info-label">📍 Current Location</span>
     <div class="info-row">
       <span class="info-label-small">Easting (E)</span>
       <span class="info-value" id="info-easting">—</span>
@@ -365,7 +363,6 @@ footer a:hover{color:var(--text);}
       <span class="info-value-small" id="info-lng">—</span>
     </div>
   </div>
-  <p class="map-hint">📍 Click anywhere on the map to get coordinates</p>
 </div>
 
 </div><!-- .container -->
@@ -396,7 +393,9 @@ function initMap() {
 
   map.on('click', function(e) {
     const lat = e.latlng.lat, lng = e.latlng.lng;
-    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) return;
+    if (lat < 1 || lat > 7.5 || lng < 99 || lng > 104.5) {
+      return;
+    }
     if (mode === 'll') {
       setMode('ll');
       switchTab('dd');
@@ -409,6 +408,7 @@ function initMap() {
       document.getElementById('gr-n').value = Math.round(N);
       runGR(Math.round(E), Math.round(N));
     }
+    map.setView([lat, lng], Math.max(map.getZoom(), 12));
   });
 
   map.on('mousemove', function(e) {
@@ -418,6 +418,10 @@ function initMap() {
       return;
     }
     updateMapInfoBox(lat, lng);
+  });
+
+  map.on('mouseleave', function() {
+    document.getElementById('map-info-box').style.display = 'none';
   });
 
   function placeMarker(lat, lng) {
@@ -536,7 +540,6 @@ function rsoToLatLng(E, N) {
   const V2 = Math.sin(B*u/A);
   const U2 = (V2*Math.cos(gam0)+S2*Math.sin(gam0))/T3;
   const t2 = Math.pow(H/Math.sqrt((1+U2)/(1-U2)), 1/B);
-  // iterate phi
   let phi = Math.PI/2 - 2*Math.atan(t2);
   for (let i=0;i<10;i++) {
     const s = Math.sin(phi);
@@ -546,7 +549,6 @@ function rsoToLatLng(E, N) {
   }
   const lam = lam0 - Math.atan2(-Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*Math.cos(gam0)*T3,
     Math.sin(gam0)*T3 - Math.cos(gam0)*Math.cos(B*u/A)*S2 - Math.sin(B*u/A)*T3) / B;
-  // correction
   const lam2 = lam0 + Math.atan2(
     S2*Math.cos(gam0) - V2*Math.sin(gam0),
     Math.cos(B*u/A)
@@ -677,7 +679,6 @@ function runLL(lat,lng) {
     document.getElementById('result-card').style.display='';
 
     placeMarker(lat,lng);
-    map.setView([lat,lng], Math.max(map.getZoom(),12));
     document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
@@ -720,7 +721,6 @@ function runGR(E,N) {
     document.getElementById('result-card').style.display='';
 
     placeMarker(lat,lng);
-    map.setView([lat,lng], Math.max(map.getZoom(),12));
     document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
   } catch(e) { showErr('Calculation error. Please check your inputs.'); }
 }
