@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://tile.openstreetmap.org">
+<link rel="preconnect" href="https://server.arcgisonline.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/leaflet.css"/>
 <style>
@@ -848,10 +849,16 @@ L.RSOGrid = L.Layer.extend({
 // ── Map init ────────────────────────────────────────────────────────────
 function initMap() {
   map = L.map('map').setView([4.2, 102.0], 7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19
-  }).addTo(map);
+  });
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Imagery © <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics',
+    maxZoom: 19
+  });
+  osm.addTo(map);
+  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'topright' }).addTo(map);
 
   gridCanvas = new L.RSOGrid();
   gridCanvas.addTo(map);
