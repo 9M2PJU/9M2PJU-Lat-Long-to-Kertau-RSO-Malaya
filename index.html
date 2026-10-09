@@ -44,7 +44,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 #map{width:100%;height:100%;flex:1;}
 
-.map-info-box{position:absolute;top:16px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;z-index:1000;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.map-info-box{position:absolute;top:112px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;z-index:1000;min-width:280px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
 .map-info-box .info-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block;}
 .map-info-box .info-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
 .map-info-box .info-row:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
@@ -123,6 +123,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   .map-container.active{display:flex;min-height:75vh;}
   #map{min-height:60vh;}
   .map-info-box{min-width:0;left:16px;right:16px;}
+  .leaflet-bottom.leaflet-right{margin-bottom:64px;}
 }
 
 .header{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
@@ -858,7 +859,7 @@ function initMap() {
     maxZoom: 19
   });
   osm.addTo(map);
-  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomleft', collapsed: false }).addTo(map);
+  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomright', collapsed: false }).addTo(map);
 
   gridCanvas = new L.RSOGrid();
   gridCanvas.addTo(map);
