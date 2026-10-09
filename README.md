@@ -1,81 +1,136 @@
-# 9M2PJU Lat-Long to Kertau RSO Malaya Converter
+# 9M2PJU Lat Long to Kertau RSO Malaya Converter
 
-An elegant, responsive web utility designed for ham radio operators, land surveyors, hikers, and mapping enthusiasts to convert coordinates between standard Latitude/Longitude and the Malayan Rectified Skew Orthomorphic (RSO) Kertau 1948 grid system used in topographic maps of Peninsular Malaysia.
+[![Build APK](https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/actions/workflows/build-apk.yml/badge.svg)](https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/actions/workflows/build-apk.yml)
+[![Latest release](https://img.shields.io/github/v/release/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya)](https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/releases/latest)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](LICENSE)
 
-Developed by **9M2PJU** ([https://hamradio.my](https://hamradio.my)).
+Convert coordinates between **Latitude/Longitude (WGS84 or Kertau 1948)** and the
+**Malayan RSO Kertau grid (EPSG:3168)** used on Peninsular Malaysia topographic maps.
+Available as a website and as an installable Android app (same code, offline-capable).
 
----
+* **Website:** https://kertau.hamradio.my/
+* **Android APK:** [latest release](https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/releases/latest/download/kertau-rso-malaya.apk)
+  (or Actions → latest *Build APK* run → Artifacts). Sideload: allow “Install unknown apps”.
 
-## What are these Coordinate Systems?
-
-### 1. Latitude & Longitude (Geographic Coordinates)
-Latitude ($\phi$) and Longitude ($\lambda$) represent position on a three-dimensional ellipsoidal model of the Earth. 
-* **Latitude** measures how far north or south a point is from the Equator (ranging from $0^\circ$ to $90^\circ$ North or South).
-* **Longitude** measures how far east or west a point is from the Prime Meridian in Greenwich, England (ranging from $0^\circ$ to $180^\circ$ East or West).
-* GPS systems, Google Maps, and smartphones output geographic coordinates using the global **WGS84** datum.
-
-### 2. Kertau 1948 / Malayan RSO (EPSG:3168)
-The **Malayan Rectified Skew Orthomorphic (RSO)** is the national grid projection system used on official topographic maps (e.g., L7010 series) of Peninsular Malaysia.
-* **Why RSO instead of standard UTM/Mercator?** Peninsular Malaysia is oriented diagonally (from Northwest to Southeast). Standard conformal projections like Transverse Mercator or UTM introduce significant scale distortion when covering long, narrow diagonal strips. The RSO projection solves this by using a oblique cylinder skewed to align exactly with the peninsula's natural diagonal axis.
-* **Datum & Ellipsoid**: It is based on the **Kertau 1948** datum using the **Modified Everest** ellipsoid. The origin is located at the Kertau triangulation station in Temerloh, Pahang.
+Developed by **9M2PJU** ([hamradio.my](https://hamradio.my)).
 
 ---
 
-## How the Calculation is Made
+## Features
 
-The converter implements the **Hotine Oblique Mercator (Variant A)** map projection math defined in the *EPSG Geodetic Parameter Dataset Guidance Note 7-2*. 
-
-### Mathematical Formulation
-The conversion utilizes the following ellipsoid parameters for the **Modified Everest** ellipsoid:
-* **Semi-major axis ($a$)**: $6,377,304.063\text{ m}$
-* **Semi-minor axis ($b$)**: $6,356,103.039\text{ m}$
-* **Scale factor at origin ($k_0$)**: $0.99984$
-* **Projection center latitude ($\phi_0$)**: $4^\circ\text{ N}$ (or $4 \times \pi / 180\text{ rad}$)
-* **Projection center longitude ($\lambda_c$)**: $102.25^\circ\text{ E}$ (or $102.25 \times \pi / 180\text{ rad}$)
-* **Azimuth of initial line ($\alpha_c$)**: $323.0257964^\circ$ (or $323.0257964 \times \pi / 180\text{ rad}$)
-* **False Easting ($FE$)**: $804,671.0\text{ m}$
-* **False Northing ($FN$)**: $0.0\text{ m}$
-
-### Projection & Iteration Process
-1. **Lat/Long to RSO Grid**: The latitude and longitude are converted to conformal coordinates on a sphere, followed by calculation of the rectified coordinates ($u, v$), which are then rotated and shifted by the False Easting/Northing constants to yield $E$ (Easting) and $N$ (Northing).
-2. **RSO Grid to Lat/Long**: The process is reversed. However, converting the isometric latitude back to geodetic latitude ($\phi$) lacks a direct algebraic solution due to the Earth's eccentricity. The app solves this using a high-precision **Newton-Raphson numerical iteration** loop:
-   $$\phi_{i+1} = \frac{\pi}{2} - 2\arctan\left( t \cdot \left[ \frac{1 - e\sin\phi_i}{1 + e\sin\phi_i} \right]^{e/2} \right)$$
-   The loop runs until the difference between consecutive steps converges to less than $10^{-11}$ radians (which represents sub-millimeter level mathematical precision).
+* **Two-way conversion** — Lat/Long ⇄ RSO Easting/Northing, plus truncated grids
+  (100 m: `E/100 N/100`, 10 m: `E/10 N/10`).
+* **Datum selector** — WGS84 (phone/GPS/Google Maps, default) or Kertau 1948
+  (old L7010 topo sheets). The ~150–200 m shift is shown with every result.
+* **Interactive map** (OpenStreetMap) — click to fill inputs, hover readout,
+  clickable marker popup, scale bar.
+* **RSO grid overlay** — canvas grid lines clipped to the official coverage,
+  with `X = Easting` / `Y = Northing` line labels, edge rulers, and density control.
+* **Offline converter** — projection runs locally via vendored Proj4js; only map
+  tiles need internet. Installable PWA (`manifest.json` + `sw.js`).
+* **Android app** — thin WebView wrapper built by GitHub Actions, no local SDK needed.
 
 ---
 
-## Why It Is Accurate
+## Coordinate systems
 
-* **True Oblique Math**: Many simplified web converters use flat approximations or polynomial equations that drift away from the projection center. This app uses the exact trigonometric and hyperbolic Hotine Oblique Mercator formulation.
-* **Newton-Raphson Solver**: The iterative numerical solver converges to $10^{-11}$ radians, ensuring no mathematical precision is lost during reverse projection.
-* **Accurate EPSG:3168 Constants**: The projection constants implemented are sourced directly from the EPSG geodetic dataset to match local Malaysian department maps.
-* **WGS84 Note**: WGS84 coordinates (GPS/Google Maps) and Kertau 1948 coordinates differ by approximately $150\text{ m}$ to $200\text{ m}$ due to different ellipsoidal datums. This app expects coordinates to be in their respective datum. When GPS coordinates are entered, they are plotted on OpenStreetMap (WGS84) and converted to Kertau RSO coordinates using the EPSG:3168 projection.
+### Latitude & Longitude
+
+Geographic coordinates: latitude (φ, north of the equator) and longitude
+(λ, east of Greenwich). Phones, GPS units, and Google Maps output **WGS84**.
+
+### Kertau 1948 / Malayan RSO (EPSG:3168)
+
+The national grid for Peninsular Malaysia topographic maps. Peninsular Malaysia
+runs diagonally NW–SE, so instead of UTM it uses an **oblique** cylinder aligned
+with the peninsula — the Hotine Oblique Mercator (Variant A) — on the
+**Everest 1830 (RSO 1969)** ellipsoid (`a = 6377295.664 m`, `1/f = 300.8017`).
+
+Official projection parameters (EPSG:3168):
+
+```
++proj=omerc +no_uoff +lat_0=4 +lonc=102.25
++alpha=323.0257905 +gamma=323.130102361111 +k=0.99984
++x_0=804670.24 +y_0=0 +ellps=evrst69 +towgs84=-11,851,5 +units=m
+```
+
+Official coverage: E 176,138–734,057 · N 124,944–744,338
+(WGS84 approx. 1.13–6.72°N, 99.59–104.6°E).
+Results outside these bounds are flagged as extrapolated.
 
 ---
 
-## Android app (APK via GitHub Actions)
+## Accuracy
 
-No local build needed. The APK wraps this same page in an offline WebView.
+* Math is done with **Proj4js using the exact EPSG:3168 definition above**
+  (both `alpha` and `gamma`, correct ellipsoid, false easting `804670.24`),
+  verified against PROJ/`epsg.io` vectors to **< 2 m forward, < 0.5 m round-trip**.
+* The **datum step** uses `towgs84=-11,851,5`. Entering GPS (WGS84) numbers as
+  Kertau 1948 (or vice versa) without converting costs ~150–200 m — the app
+  converts explicitly instead.
 
-* **Download:** site “Android App” card → `releases/latest/download/kertau-rso-malaya.apk`,
-  or repo → `Actions → Build APK →` latest run → Artifacts → `kertau-rso-malaya-apk`.
-* **How it builds:** `.github/workflows/build-apk.yml` runs on every `main` push / PR /
-  manually (`workflow_dispatch`). It syncs `index.html` + `vendor/` + `icons/` via
-  `android/sync-www.sh`, verifies PROJ vectors in Node, then runs
-  `gradle -p android assembleDebug` on `ubuntu-latest` (JDK 17, Android platform 34).
-* **Tagged release:** push a tag `v*` (e.g. `git tag v1.0.0 && git push origin v1.0.0`)
-  and the workflow publishes the APK to GitHub Releases — this is what the Pages
-  download button points to.
-* **Install:** on the phone enable “Install unknown apps”, open the APK. Debug-signed,
-  sideload only (no Play Store). Converter works offline; map tiles need internet.
+Reference vectors (WGS84 in → RSO out):
+
+| Place | Lat, Lng | E | N |
+|---|---|---|---|
+| Kuala Lumpur | 3.1390, 101.6869 | 410267 | 347384 |
+| Kuantan | 4.1769, 103.1443 | 572338 | 461880 |
+| Penang | 5.4141, 100.3288 | 260411 | 599483 |
+| Johor Bahru | 1.4655, 103.7578 | 640348 | 162059 |
+
+---
+
+## Use it
+
+### Website
+
+Open https://kertau.hamradio.my/, pick a direction, enter values (or click the
+map), and copy any result with the copy buttons. Truncated grids center to the
+square (`+50 m` / `+5 m`).
+
+### Android app
+
+Install the APK from the [latest release](https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/releases/latest/download/kertau-rso-malaya.apk).
+It wraps this same page in an offline WebView (converter works offline;
+map tiles need internet). Launcher name: **9M2PJU Lat Long To RSO**.
+
+---
+
+## Project layout
+
+```
+index.html                  Web app (single file: UI + Leaflet map + Proj4js calls)
+vendor/                     Local Proj4js + Leaflet (no CDN dependency for the converter)
+icons/, manifest.json, sw.js   PWA shell (installable, offline app shell)
+android/                    Native WebView wrapper (Kotlin, no frameworks)
+  sync-www.sh               Copies index.html + vendor/ + icons/ into APK assets
+  app/src/main/...          MainActivity.kt, AndroidManifest.xml, icons
+.github/workflows/build-apk.yml   CI: PROJ vector check + assembleDebug + Release on v* tags
+CNAME                       Custom domain (kertau.hamradio.my)
+```
+
+---
+
+## Development & releases
+
+No local Android SDK needed — everything builds in CI:
+
+```bash
+git push origin main            # builds APK → Actions run → Artifacts
+git tag v1.0.x && git push origin v1.0.x   # publishes APK to GitHub Releases
+```
+
+The workflow (`Build APK`) runs on every `main` push, PR, tag `v*`, or manually:
+syncs the web app into the APK, checks the reference vectors above in Node,
+then runs `gradle -p android assembleDebug`. The Pages download button points at
+`releases/latest/download/kertau-rso-malaya.apk`, so push a tag to refresh it.
+
+---
 
 ## License
 
-This software is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. 
-
-Under the AGPL-3.0:
-* You are free to copy, modify, and distribute this software.
-* If you host a modified version of this application on a network/website, you **must make your modified source code available** to the users of that website.
-* The license file is included in this repository as [LICENSE](LICENSE).
+**GNU Affero General Public License v3.0 (AGPL-3.0)** — see [LICENSE](LICENSE).
+You may copy, modify, and distribute this software; if you host a modified
+version, you must make the modified source available to its users.
 
 Developed and maintained by **9M2PJU** — [hamradio.my](https://hamradio.my).
