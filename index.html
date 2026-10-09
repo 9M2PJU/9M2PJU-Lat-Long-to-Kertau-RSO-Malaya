@@ -711,6 +711,14 @@ L.RSOGrid = L.Layer.extend({
     canvas.width = size.x;
     canvas.height = size.y;
 
+    // Anchor canvas pixel (0,0) to container (0,0). overlayPane shifts when
+    // you pan/zoom, so container-relative points would drift off-canvas.
+    // All drawing below uses layer coords minus this origin.
+    const origin = map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(canvas, origin);
+    const toX = (lp) => lp.x - origin.x;
+    const toY = (lp) => lp.y - origin.y;
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -782,7 +790,8 @@ L.RSOGrid = L.Layer.extend({
         try { ll = rsoToLatLng(E, N); } catch(e) { first = true; continue; }
         if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) { first = true; continue; }
 
-        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        const lp = map.latLngToLayerPoint([ll.lat, ll.lng]);
+        const pt = { x: toX(lp), y: toY(lp) };
         if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
         else { ctx.lineTo(pt.x, pt.y); }
         const dy = Math.abs(pt.y - size.y / 2);
@@ -814,7 +823,8 @@ L.RSOGrid = L.Layer.extend({
         try { ll = rsoToLatLng(E, N); } catch(e) { first = true; continue; }
         if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) { first = true; continue; }
 
-        const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
+        const lp = map.latLngToLayerPoint([ll.lat, ll.lng]);
+        const pt = { x: toX(lp), y: toY(lp) };
         if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
         else { ctx.lineTo(pt.x, pt.y); }
         const dx = Math.abs(pt.x - size.x / 2);
