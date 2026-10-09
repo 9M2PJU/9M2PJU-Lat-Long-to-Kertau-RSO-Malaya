@@ -31,10 +31,10 @@
   --r:8px;--rl:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;line-height:1.6;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;min-height:100dvh;line-height:1.6;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.1;pointer-events:none;}
 
-.container{display:flex;min-height:100vh;width:100%;gap:0;}
+.container{display:flex;min-height:100vh;min-height:100dvh;width:100%;gap:0;}
 
 .sidebar{width:100%;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:2.5rem 1.25rem;flex-shrink:0;scroll-behavior:smooth;}
 .page{position:relative;z-index:1;}
@@ -111,7 +111,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 @media(min-width:1200px){
   .container{flex-direction:row;}
-  .sidebar{width:420px;max-width:420px;padding:2.5rem 1.5rem;border-right:1px solid var(--border);flex-shrink:0;height:100vh;overflow-y:auto;}
+  .sidebar{width:420px;max-width:420px;padding:2.5rem 1.5rem;border-right:1px solid var(--border);flex-shrink:0;height:100vh;height:100dvh;overflow-y:auto;}
   .map-container.active{display:flex;}
   .toggle-map-btn{display:none !important;}
 }
@@ -182,14 +182,14 @@ input[type=number]::placeholder{color:var(--text3);}
 .grid-small-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .gsmall{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;}
 .gsmall .gl{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
-.gsmall .gv{font-family:'DM Mono',monospace;font-size:16px;color:var(--text);}
+.gsmall .gv{font-family:'DM Mono',monospace;font-size:16px;color:var(--text);overflow-wrap:anywhere;}
 
 .copy-row{display:flex;gap:8px;margin-top:12px;}
 .btn-copy{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
 .btn-copy:hover{border-color:var(--border2);color:var(--text);}
 
 .err{background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-top:1rem;display:none;}
-.note{background:var(--blue-dim);border:1px solid #1f4068;border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.75;}
+.note{background:var(--blue-dim);border:1px solid #1f4068;border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.75;overflow-wrap:break-word;}
 .note strong{color:var(--blue);font-weight:500;}
 
 footer{text-align:center;padding-top:3rem;font-size:11px;color:var(--text3);}
@@ -201,6 +201,13 @@ footer a:hover{color:var(--text);}
   .input-row,.result-row,.grid-small-row,.grid-input-row{grid-template-columns:1fr;}
   .gridbox .gv{font-size:20px;}
   .copy-row{flex-direction:column;}
+  .ex-btn{padding:8px 14px;}
+  .grid-toggle{padding:8px 12px;}
+  .tab{padding:10px;}
+  .mode-btn{padding:12px 8px;}
+  .dms-row{gap:6px;}
+  .dms-row input{padding:10px 4px;}
+  .leaflet-bar a{width:36px !important;height:36px !important;line-height:36px !important;}
 }
 
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
@@ -242,9 +249,9 @@ footer a:hover{color:var(--text);}
 
   <div id="panel-ll">
     <div class="card-title">Input Coordinates (Lat/Long)</div>
-    <div style="display:flex;gap:8px;margin-bottom:1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px;" role="radiogroup" aria-label="Input datum">
-      <label style="flex:1;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-wgs-wrap"><input type="radio" name="datum" value="wgs84" checked style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">WGS84 (GPS)</b><span style="display:block;font-size:11px;">Phone / Google Maps</span></span></label>
-      <label style="flex:1;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-kertau-wrap"><input type="radio" name="datum" value="kertau" style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">Kertau 1948</b><span style="display:block;font-size:11px;">Old topo sheets L7010</span></span></label>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px;" role="radiogroup" aria-label="Input datum">
+      <label style="flex:1;min-width:150px;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-wgs-wrap"><input type="radio" name="datum" value="wgs84" checked style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">WGS84 (GPS)</b><span style="display:block;font-size:11px;">Phone / Google Maps</span></span></label>
+      <label style="flex:1;min-width:150px;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-kertau-wrap"><input type="radio" name="datum" value="kertau" style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">Kertau 1948</b><span style="display:block;font-size:11px;">Old topo sheets L7010</span></span></label>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="switchTab('dd')">Decimal Degrees (DD)</button>
@@ -888,6 +895,7 @@ function initMap() {
       document.getElementById('gr-n').value = Math.round(N);
       runGR(Math.round(E), Math.round(N));
     }
+    updateMapInfoBox(lat, lng);
     map.setView([lat, lng], Math.max(map.getZoom(), 12));
   });
 
