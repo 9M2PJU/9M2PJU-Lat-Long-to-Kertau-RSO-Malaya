@@ -396,13 +396,14 @@ footer a:hover{color:var(--text);}
   <div id="map"></div>
   
   <!-- Map Rulers -->
-  <div id="ruler-corner">RSO</div>
+  <div id="ruler-corner" title="X = Easting (E) · Y = Northing (N)">X·Y</div>
   <div id="ruler-left"></div>
   <div id="ruler-bottom"></div>
   
   <!-- Grid Controls -->
   <div class="grid-controls">
     <button class="grid-toggle active" id="grid-toggle-btn" onclick="toggleGrid()">Grid</button>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);white-space:nowrap;" title="X lines = Easting (E) · Y lines = Northing (N)">X=E · Y=N</span>
     <label>Density:</label>
     <select id="grid-density" onchange="updateGrid()">
       <option value="auto">Auto</option>
@@ -479,6 +480,27 @@ let map, marker;
 let gridEnabled = true;
 let gridCanvas = null;
 let gridDensityMode = 'auto';
+
+// Official EPSG:3168 projected bounds — grid lines are drawn inside these only.
+const RSO_BOUNDS = { minE: 176138, maxE: 734057, minN: 124944, maxN: 744338 };
+
+// ── Canvas grid-line label: X = Easting (E), Y = Northing (N) ────────────
+function drawGridLabel(ctx, canvas, text, x, y) {
+  ctx.save();
+  ctx.font = 'bold 10px "DM Mono", monospace';
+  const w = ctx.measureText(text).width;
+  let bx = Math.min(Math.max(x + 5, 3), Math.max(canvas.width - w - 9, 3));
+  let by = Math.min(Math.max(y - 9, 3), Math.max(canvas.height - 20, 3));
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(13,17,23,0.92)';
+  ctx.strokeStyle = 'rgba(63,185,80,0.65)';
+  ctx.lineWidth = 1;
+  ctx.fillRect(bx - 3, by - 3, w + 6, 15);
+  ctx.strokeRect(bx - 3, by - 3, w + 6, 15);
+  ctx.fillStyle = '#3fb950';
+  ctx.fillText(text, bx, by + 8);
+  ctx.restore();
+}
 
 // ── RSO Math (PROJ EPSG:3168 — replaces hand-rolled HOM) ─────────────────
 // latLngToRSO: map/grid overlay path, always WGS84 (OSM tiles are WGS84).
@@ -559,8 +581,9 @@ function updateRulers() {
   bottomRuler.innerHTML = '';
   leftRuler.innerHTML = '';
 
-  // Bottom Ruler (Easting)
+  // Bottom Ruler (Easting = X)
   for (let E = startE; E <= endE; E += step) {
+    if (E < RSO_BOUNDS.minE || E > RSO_BOUNDS.maxE) continue;
     const midN = (minN + maxN) / 2;
     const ll = rsoToLatLng(E, midN);
     if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
@@ -602,8 +625,9 @@ function updateRulers() {
     }
   }
 
-  // Left Ruler (Northing)
+  // Left Ruler (Northing = Y)
   for (let N = startN; N <= endN; N += step) {
+    if (N < RSO_BOUNDS.minN || N > RSO_BOUNDS.maxN) continue;
     const midE = (minE + maxE) / 2;
     const ll = rsoToLatLng(midE, N);
     if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
@@ -673,24 +697,32 @@ L.RSOGrid = L.Layer.extend({
       updateRulers();
       return;
     }
+    if (typeof CRS_OK!=='undefined' && !CRS_OK) {
+      this._canvas.style.display = 'none';
+      updateRulers();
+      return;
+    }
     this._canvas.style.display = 'block';
-    
+
     const map = this._map;
     const size = map.getSize();
     const canvas = this._canvas;
-    
+
     canvas.width = size.x;
     canvas.height = size.y;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     const bounds = map.getBounds();
     const nw = bounds.getNorthWest();
     const se = bounds.getSouthEast();
-    const rsoNW = latLngToRSO(nw.lat, nw.lng);
-    const rsoSE = latLngToRSO(se.lat, se.lng);
-    
+    let rsoNW, rsoSE;
+    try {
+      rsoNW = latLngToRSO(nw.lat, nw.lng);
+      rsoSE = latLngToRSO(se.lat, se.lng);
+    } catch(e) { updateRulers(); return; }
+
     let step;
     if (gridDensityMode === 'auto') {
       const zoom = map.getZoom();
@@ -707,56 +739,94 @@ L.RSOGrid = L.Layer.extend({
     } else {
       step = parseInt(gridDensityMode);
     }
-    
-    const minE = Math.floor(Math.min(rsoNW.E, rsoSE.E) / step) * step;
-    const maxE = Math.ceil(Math.max(rsoNW.E, rsoSE.E) / step) * step;
-    const minN = Math.floor(Math.min(rsoNW.N, rsoSE.N) / step) * step;
-    const maxN = Math.ceil(Math.max(rsoNW.N, rsoSE.N) / step) * step;
-    
-    // Draw Easting lines
+
+    const viewMinE = Math.min(rsoNW.E, rsoSE.E);
+    const viewMaxE = Math.max(rsoNW.E, rsoSE.E);
+    const viewMinN = Math.min(rsoNW.N, rsoSE.N);
+    const viewMaxN = Math.max(rsoNW.N, rsoSE.N);
+
+    // View doesn't touch official RSO coverage → draw nothing.
+    if (viewMaxE < RSO_BOUNDS.minE || viewMinE > RSO_BOUNDS.maxE ||
+        viewMaxN < RSO_BOUNDS.minN || viewMinN > RSO_BOUNDS.maxN) {
+      updateRulers();
+      return;
+    }
+
+    const minE = Math.floor(viewMinE / step) * step;
+    const maxE = Math.ceil(viewMaxE / step) * step;
+    const minN = Math.floor(viewMinN / step) * step;
+    const maxN = Math.ceil(viewMaxN / step) * step;
+
+    // One-cell margin so lines reach the viewport edge; segments outside
+    // the official bounds are cut (relevant locations only).
+    const m = step;
+    const inE = (E) => E >= RSO_BOUNDS.minE - m && E <= RSO_BOUNDS.maxE + m;
+    const inN = (N) => N >= RSO_BOUNDS.minN - m && N <= RSO_BOUNDS.maxN + m;
+
+    // Draw Easting (X) lines — lines of constant E
     for (let E = minE; E <= maxE; E += step) {
+      if (!inE(E)) continue;
       const isMajor = (E % 10000 === 0);
       ctx.beginPath();
       ctx.lineWidth = isMajor ? 1.5 : 1;
       ctx.strokeStyle = isMajor ? 'rgba(63, 185, 80, 0.7)' : 'rgba(63, 185, 80, 0.3)';
       ctx.setLineDash(isMajor ? [] : [3, 3]);
-      
+
       let first = true;
+      let bestPt = null, bestDy = Infinity;
       const steps = 40;
       for (let i = 0; i <= steps; i++) {
         const N = minN + (maxN - minN) * (i / steps);
-        const ll = rsoToLatLng(E, N);
-        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
-        
+        if (!inN(N)) { first = true; continue; }
+        let ll;
+        try { ll = rsoToLatLng(E, N); } catch(e) { first = true; continue; }
+        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) { first = true; continue; }
+
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        if (first) { ctx.moveTo(pt.x, pt.y); first = false; } 
+        if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
         else { ctx.lineTo(pt.x, pt.y); }
+        const dy = Math.abs(pt.y - size.y / 2);
+        if (dy < bestDy) { bestDy = dy; bestPt = pt; }
       }
       ctx.stroke();
+      if (isMajor && bestPt && bestPt.x >= -20 && bestPt.x <= size.x + 20 &&
+          bestPt.y >= 0 && bestPt.y <= size.y) {
+        drawGridLabel(ctx, canvas, 'X ' + Math.round(E).toLocaleString('en-US'), bestPt.x, bestPt.y);
+      }
     }
-    
-    // Draw Northing lines
+
+    // Draw Northing (Y) lines — lines of constant N
     for (let N = minN; N <= maxN; N += step) {
+      if (!inN(N)) continue;
       const isMajor = (N % 10000 === 0);
       ctx.beginPath();
       ctx.lineWidth = isMajor ? 1.5 : 1;
       ctx.strokeStyle = isMajor ? 'rgba(63, 185, 80, 0.7)' : 'rgba(63, 185, 80, 0.3)';
       ctx.setLineDash(isMajor ? [] : [3, 3]);
-      
+
       let first = true;
+      let bestPt = null, bestDx = Infinity;
       const steps = 40;
       for (let i = 0; i <= steps; i++) {
         const E = minE + (maxE - minE) * (i / steps);
-        const ll = rsoToLatLng(E, N);
-        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) continue;
-        
+        if (!inE(E)) { first = true; continue; }
+        let ll;
+        try { ll = rsoToLatLng(E, N); } catch(e) { first = true; continue; }
+        if (!ll || isNaN(ll.lat) || isNaN(ll.lng)) { first = true; continue; }
+
         const pt = map.latLngToContainerPoint([ll.lat, ll.lng]);
-        if (first) { ctx.moveTo(pt.x, pt.y); first = false; } 
+        if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
         else { ctx.lineTo(pt.x, pt.y); }
+        const dx = Math.abs(pt.x - size.x / 2);
+        if (dx < bestDx) { bestDx = dx; bestPt = pt; }
       }
       ctx.stroke();
+      if (isMajor && bestPt && bestPt.y >= -20 && bestPt.y <= size.y + 20 &&
+          bestPt.x >= 0 && bestPt.x <= size.x) {
+        drawGridLabel(ctx, canvas, 'Y ' + Math.round(N).toLocaleString('en-US'), bestPt.x, bestPt.y);
+      }
     }
-    
+
     updateRulers();
   }
 });
@@ -847,6 +917,11 @@ function updateGrid() {
 
 function updateMapInfoBox(lat, lng) {
   const {E, N} = latLngToRSO(lat, lng);
+  if (E < RSO_BOUNDS.minE || E > RSO_BOUNDS.maxE ||
+      N < RSO_BOUNDS.minN || N > RSO_BOUNDS.maxN) {
+    document.getElementById('map-info-box').style.display = 'none';
+    return;
+  }
   const g6 = fmtGrid(E, N, 6);
   const g8 = fmtGrid(E, N, 8);
   
