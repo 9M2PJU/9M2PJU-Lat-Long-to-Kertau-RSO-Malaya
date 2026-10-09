@@ -116,8 +116,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 }
 
 @media(max-width:1199px){
+  .container{flex-direction:column;}
+  .sidebar{width:100%;max-width:none;height:auto;overflow:visible;border-right:none;border-bottom:1px solid var(--border);}
   .sidebar.hidden{display:none;}
-  .map-container.active{display:flex;}
+  .map-container.active{display:flex;min-height:75vh;}
+  #map{min-height:60vh;}
+  .map-info-box{min-width:0;left:16px;right:16px;}
 }
 
 .header{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
