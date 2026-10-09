@@ -1,0 +1,10 @@
+# Local caches / generated
+.gradle/
+build/
+android/.gradle/
+android/app/build/
+android/app/src/main/assets/www/*
+!android/app/src/main/assets/www/.gitkeep
+local.properties
+*.iml
+.DS_Store

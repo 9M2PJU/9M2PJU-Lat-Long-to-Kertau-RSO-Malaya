@@ -3,11 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>9M2PJU Lat long to Kertau RSO Malaya Converter</title>
+<title>Kertau RSO Malaya Converter — Lat/Long ⇄ EPSG:3168 | 9M2PJU</title>
+<meta name="description" content="Convert WGS84 / Kertau 1948 Lat-Long to Malayan RSO Kertau grid (EPSG:3168) and back. PROJ-accurate converter for Peninsular Malaysia topographic maps.">
+<link rel="canonical" href="https://kertau.hamradio.my/">
+<meta name="theme-color" content="#0d1117">
+<meta property="og:title" content="Kertau RSO Malaya Converter — Lat/Long ⇄ EPSG:3168">
+<meta property="og:description" content="Accurate WGS84/Kertau1948 ⇄ RSO Malaya (EPSG:3168) converter for Peninsular Malaysia.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kertau.hamradio.my/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%230d1117' stroke='%233fb950' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%233fb950'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://tile.openstreetmap.org">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="vendor/leaflet.css"/>
 <style>
 :root {
   --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
@@ -224,6 +234,10 @@ footer a:hover{color:var(--text);}
 
   <div id="panel-ll">
     <div class="card-title">Input Coordinates (Lat/Long)</div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px;" role="radiogroup" aria-label="Input datum">
+      <label style="flex:1;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-wgs-wrap"><input type="radio" name="datum" value="wgs84" checked style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">WGS84 (GPS)</b><span style="display:block;font-size:11px;">Phone / Google Maps</span></span></label>
+      <label style="flex:1;display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:8px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;" id="datum-kertau-wrap"><input type="radio" name="datum" value="kertau" style="margin-top:3px;accent-color:var(--green);"><span><b style="display:block;font-size:12px;color:var(--text);">Kertau 1948</b><span style="display:block;font-size:11px;">Old topo sheets L7010</span></span></label>
+    </div>
     <div class="tabs">
       <button class="tab active" onclick="switchTab('dd')">Decimal Degrees (DD)</button>
       <button class="tab" onclick="switchTab('dms')">Degrees Minutes Seconds (DMS)</button>
@@ -246,7 +260,7 @@ footer a:hover{color:var(--text);}
       <div>
         <span class="field-label">Longitude — East (E)</span>
         <div class="dms-row">
-          <input type="number" id="lng-d" placeholder="°" min="99" max="120">
+          <input type="number" id="lng-d" placeholder="°" min="99" max="105">
           <input type="number" id="lng-m" placeholder="'" min="0" max="59">
           <input type="number" id="lng-s" placeholder='"' min="0" max="59.99" step="0.01">
         </div>
@@ -272,40 +286,41 @@ footer a:hover{color:var(--text);}
       <div class="field">
         <label>Easting — E (meters)</label>
         <input type="number" id="gr-e" placeholder="e.g. 411500">
-        <div class="grid-hint">Range: 100,000 – 900,000</div>
+        <div class="grid-hint">Valid: 100,000 – 800,000 · Official: 176,138 – 734,057</div>
       </div>
       <div class="field">
         <label>Northing — N (meters)</label>
         <input type="number" id="gr-n" placeholder="e.g. 349000">
-        <div class="grid-hint">Range: 0 – 700,000</div>
+        <div class="grid-hint">Valid: 50,000 – 800,000 · Official: 124,944 – 744,338</div>
       </div>
     </div>
     <div style="margin-bottom:1rem">
       <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">— or enter grid reference directly —</div>
       <div class="input-row">
         <div class="field">
-          <label>6-Digit Grid (EEE NNN)</label>
-          <input type="text" id="gr-6" placeholder="e.g. 411 349" oninput="parseGrid6()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;">
+          <label>Grid 100m (E/100 N/100, centers +50m)</label>
+          <input type="text" id="gr-6" placeholder="e.g. 4102 3473" oninput="parseGrid6()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;">
         </div>
         <div class="field">
-          <label>8-Digit Grid (EEEE NNNN)</label>
-          <input type="text" id="gr-8" placeholder="e.g. 4115 3490" oninput="parseGrid8()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;">
+          <label>Grid 10m (E/10 N/10, centers +5m)</label>
+          <input type="text" id="gr-8" placeholder="e.g. 41026 34738" oninput="parseGrid8()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 13px;width:100%;outline:none;">
         </div>
       </div>
     </div>
     <button class="btn-convert" onclick="doConvertGR()">→ Convert to Lat/Long</button>
     <div style="margin-top:1.1rem">
-      <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Example RSO Grids</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Example RSO Grids (WGS84)</div>
       <div class="example-list">
-        <button class="ex-btn" onclick="loadGR(411219,349380)">Kuala Lumpur</button>
-        <button class="ex-btn" onclick="loadGR(536420,462310)">Kuantan</button>
-        <button class="ex-btn" onclick="loadGR(247830,600150)">Penang</button>
-        <button class="ex-btn" onclick="loadGR(431800,162400)">Johor Bahru</button>
+        <button class="ex-btn" onclick="loadGR(410267,347384)">Kuala Lumpur</button>
+        <button class="ex-btn" onclick="loadGR(572338,461880)">Kuantan</button>
+        <button class="ex-btn" onclick="loadGR(260411,599483)">Penang</button>
+        <button class="ex-btn" onclick="loadGR(640348,162059)">Johor Bahru</button>
       </div>
     </div>
   </div>
 
-  <div class="err" id="err-box"></div>
+  <div class="err" id="err-box" role="alert" aria-live="assertive"></div>
+  <div class="err" id="warn-box" role="status" aria-live="polite" style="display:none;border-color:var(--amber);background:var(--amber-dim);color:var(--amber);"></div>
 </div>
 
 <div class="card" id="result-card" style="display:none;animation-delay:.15s">
@@ -343,12 +358,27 @@ footer a:hover{color:var(--text);}
   </div>
 </div>
 
+<div class="card" id="android-app" style="animation-delay:.18s">
+  <div class="card-title">Android App — APK Download</div>
+  <div class="note" style="margin-bottom:12px;">
+    <strong>Same converter as an installable app.</strong> The APK wraps this page in an offline WebView
+    (conversion works without internet; map tiles need internet). Built automatically by
+    <strong>GitHub Actions</strong> — nothing is built locally.
+  </div>
+  <div class="copy-row" style="display:flex;flex-wrap:wrap;gap:8px;">
+    <a class="btn-convert" style="flex:2;min-width:200px;text-align:center;text-decoration:none;display:inline-block;" href="https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/releases/latest/download/kertau-rso-malaya.apk">⬇ Download APK (latest release)</a>
+    <a class="btn-copy" style="flex:1;min-width:160px;text-align:center;text-decoration:none;display:inline-block;padding:12px 8px;" href="https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya/actions/workflows/build-apk.yml" target="_blank" rel="noopener">Nightly builds / Actions</a>
+  </div>
+  <p style="font-size:11px;color:var(--text3);margin-top:8px;">No release yet? Use Actions → latest run → Artifacts → <span style="font-family:'DM Mono',monospace;">kertau-rso-malaya-apk</span>. On your phone: allow “Install unknown apps”, then open the APK.</p>
+</div>
+
 <div class="card" style="animation-delay:.2s">
   <div class="card-title">Datum Notes</div>
   <div class="note">
-    <strong>Kertau 1948 Datum:</strong> This app uses the Kertau 1948 datum / Modified Everest ellipsoid (EPSG:3168) — same as the official topographic maps of Peninsular Malaysia.<br><br>
-    <strong>WGS84 Difference:</strong> Modern GPS and Google Maps use the WGS84 datum. The difference can reach <strong>~150–200 meters</strong>. Do not input GPS coordinates directly without datum conversion.<br><br>
-    <strong>Coverage:</strong> Peninsular Malaysia only — Lat: 1°–7.5°N, Long: 99°–104.5°E.
+    <strong>EPSG:3168 (PROJ):</strong> <span style="font-family:'DM Mono',monospace;font-size:11px">+proj=omerc +no_uoff +lat_0=4 +lonc=102.25 +alpha=323.0257905 +gamma=323.13010236111 +k=0.99984 +x_0=804670.24 +y_0=0 +ellps=evrst69 +towgs84=-11,851,5</span><br><br>
+    <strong>Datum:</strong> Select <strong>WGS84</strong> for phone/GPS/Google Maps (default). Select <strong>Kertau 1948</strong> only for old L7010 topo sheets. Shift is ~150–200m. The map and RSO grid overlay always use WGS84.<br><br>
+    <strong>Grid labels:</strong> “6-digit” = floor(E/100) floor(N/100) (±50m); “8-digit” = floor(E/10) floor(N/10) (±5m). Typing a truncated grid centers to the square.<br><br>
+    <strong>Coverage:</strong> Peninsular Malaysia — official E 176,138–734,057, N 124,944–744,338; WGS84 1.13–6.72°N, 99.59–104.6°E.
   </div>
 </div>
 
@@ -359,7 +389,8 @@ footer a:hover{color:var(--text);}
   Map © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a><br>
   <span style="display:inline-block; margin-top:8px; color:var(--text3);">
     Made with ♥ by <a href="https://hamradio.my" target="_blank" style="color:var(--green); font-weight:500;">9M2PJU</a> &nbsp;·&nbsp; 
-    Licensed under <a href="https://en.wikipedia.org/wiki/GNU_Affero_General_Public_License" target="_blank">AGPLv3</a>
+    Licensed under <a href="https://en.wikipedia.org/wiki/GNU_Affero_General_Public_License" target="_blank">AGPLv3</a> &nbsp;·&nbsp;
+    <a href="https://github.com/9M2PJU/9M2PJU-Lat-Long-to-Kertau-RSO-Malaya" target="_blank" rel="noopener">Source</a>
   </span>
 </footer>
 
@@ -426,8 +457,26 @@ footer a:hover{color:var(--text);}
 
 <button class="toggle-map-btn" onclick="toggleMapView()" id="toggle-map-btn">📍 View Map</button>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vendor/proj4.min.js"></script>
+<script src="vendor/leaflet.js"></script>
 <script>
+// ── PROJ CRS (official EPSG:3168; map/grid overlay always WGS84) ──────────
+var RSO_DEF='+proj=omerc +no_uoff +lat_0=4 +lonc=102.25 +alpha=323.0257905 +gamma=323.130102361111 +k=0.99984 +x_0=804670.24 +y_0=0 +a=6377295.664 +rf=300.8017 +towgs84=-11,851,5,0,0,0,0 +units=m +no_defs';
+var KERTAU_DEF='+proj=longlat +a=6377295.664 +rf=300.8017 +towgs84=-11,851,5,0,0,0,0 +no_defs';
+var WGS84_DEF='+proj=longlat +datum=WGS84 +no_defs';
+var CRS_OK=false;
+try{
+  if(typeof proj4==='undefined') throw new Error('proj4 missing');
+  proj4.defs('RSO_MALAYA',RSO_DEF); proj4.defs('KERTAU48',KERTAU_DEF); proj4.defs('WGS84_',WGS84_DEF);
+  CRS_OK=true;
+}catch(e){ CRS_OK=false; }
+function getDatum(){ var el=document.querySelector('input[name=datum]:checked'); return el?el.value:'wgs84'; }
+function showWarn(m){ var el=document.getElementById('warn-box'); if(!el) return; if(!m){el.style.display='none';return;} el.textContent=m; el.style.display='block'; }
+function boundsWarn(E,N){
+  if(E<176138||E>734057||N<124944||N>744338) showWarn('Outside official RSO bounds (E 176,138–734,057 · N 124,944–744,338). Result is extrapolated — verify on epsg.io.');
+  else showWarn(null);
+}
+
 let mode = 'll';
 let activeTab = 'dd';
 let lastR = {};
@@ -436,85 +485,42 @@ let gridEnabled = true;
 let gridCanvas = null;
 let gridDensityMode = 'auto';
 
-// ── RSO Math ────────────────────────────────────────────────────────────
-const RSO = {
-  a: 6377304.063, b: 6356103.039,
-  phi0: 4*Math.PI/180, lamc: 102.25*Math.PI/180,
-  azc: 323.0257964*Math.PI/180, k0: 0.99984,
-  FE: 804671.0, FN: 0.0
-};
-RSO.e2 = 1-(RSO.b*RSO.b)/(RSO.a*RSO.a);
-RSO.e  = Math.sqrt(RSO.e2);
-
-function _t(phi) {
-  const s = Math.sin(phi);
-  return Math.tan(Math.PI/4 - phi/2) / Math.pow((1 - RSO.e*s)/(1 + RSO.e*s), RSO.e/2);
-}
-
-function _precompute() {
-  if (RSO._ready) return;
-  const {e2,e,phi0,lamc,azc,k0,a} = RSO;
-  const sp0 = Math.sin(phi0), cp0 = Math.cos(phi0);
-  const B = Math.sqrt(1 + e2*Math.pow(cp0,4)/(1-e2));
-  const A = a*B*k0*Math.sqrt(1-e2)/(1-e2*sp0*sp0);
-  const t0 = _t(phi0);
-  const D  = B*Math.sqrt(1-e2)/(cp0*Math.sqrt(1-e2*sp0*sp0));
-  const DD = Math.max(D,1);
-  const F  = DD+Math.sqrt(DD*DD-1);
-  const H  = F*Math.pow(t0,B);
-  const G  = (F-1/F)/2;
-  const gam0 = Math.asin(Math.sin(azc)/D);
-  const lam0  = lamc - Math.asin(G*Math.tan(gam0))/B;
-  Object.assign(RSO,{B,A,t0,D,F,H,G,gam0,lam0,_ready:true});
-}
-
+// ── RSO Math (PROJ EPSG:3168 — replaces hand-rolled HOM) ─────────────────
+// latLngToRSO: map/grid overlay path, always WGS84 (OSM tiles are WGS84).
+// runLL handles the Kertau-1948 datum choice separately via convertLLDatum.
 function latLngToRSO(latDeg, lngDeg) {
-  _precompute();
-  const {A,B,H,G,gam0,lam0,azc,FE,FN} = RSO;
-  const phi = latDeg*Math.PI/180, lam = lngDeg*Math.PI/180;
-  const t  = _t(phi);
-  const Q  = H/Math.pow(t,B);
-  const S  = (Q-1/Q)/2;
-  const T2 = (Q+1/Q)/2;
-  const V  = Math.sin(B*(lam-lam0));
-  const U  = (-V*Math.cos(gam0)+S*Math.sin(gam0))/T2;
-  const v  = A*Math.log((1-U)/(1+U))/2;
-  const u  = A*Math.atan2(S*Math.cos(gam0)+V*Math.sin(gam0), Math.cos(B*(lam-lam0)))/B;
-  return {
-    E: v*Math.cos(azc)+u*Math.sin(azc)+FE,
-    N: u*Math.cos(azc)-v*Math.sin(azc)+FN
-  };
+  if(!CRS_OK) throw new Error('proj4 missing');
+  const en = proj4('WGS84_','RSO_MALAYA',[lngDeg,latDeg]);
+  return { E: en[0], N: en[1] };
 }
 
 function rsoToLatLng(E, N) {
-  _precompute();
-  const {A,B,H,G,gam0,lam0,azc,FE,FN,e} = RSO;
-  const v = (E-FE)*Math.cos(azc) - (N-FN)*Math.sin(azc);
-  const u = (N-FN)*Math.cos(azc) + (E-FE)*Math.sin(azc);
-  const Q2 = Math.exp(-B*v/A);
-  const S2 = (Q2-1/Q2)/2;
-  const T3 = (Q2+1/Q2)/2;
-  const V2 = Math.sin(B*u/A);
-  const U2 = (V2*Math.cos(gam0)+S2*Math.sin(gam0))/T3;
-  const t2 = Math.pow(H/Math.sqrt((1+U2)/(1-U2)), 1/B);
-  let phi = Math.PI/2 - 2*Math.atan(t2);
-  for (let i=0;i<10;i++) {
-    const s = Math.sin(phi);
-    const next = Math.PI/2 - 2*Math.atan(t2*Math.pow((1-e*s)/(1+e*s), e/2));
-    if (Math.abs(next-phi) < 1e-11) { phi=next; break; }
-    phi = next;
-  }
-  const lam2 = lam0 + Math.atan2(
-    S2*Math.cos(gam0) - V2*Math.sin(gam0),
-    Math.cos(B*u/A)
-  ) / B;
-  return { lat: phi*180/Math.PI, lng: lam2*180/Math.PI };
+  if(!CRS_OK) throw new Error('proj4 missing');
+  const w = proj4('RSO_MALAYA','WGS84_',[E,N]);
+  return { lat: w[1], lng: w[0] };
+}
+
+// Datum-aware forward for the converter panel only.
+function convertLLDatum(latDeg, lngDeg) {
+  const datum = (typeof getDatum==='function') ? getDatum() : 'wgs84';
+  const src = datum==='kertau' ? 'KERTAU48' : 'WGS84_';
+  const en = proj4(src,'RSO_MALAYA',[lngDeg,latDeg]);
+  const w = datum==='kertau' ? proj4('RSO_MALAYA','WGS84_',[en[0],en[1]]) : [lngDeg,latDeg];
+  const k = datum==='kertau' ? [lngDeg,latDeg] : proj4('RSO_MALAYA','KERTAU48',[en[0],en[1]]);
+  return { E: en[0], N: en[1], wgsLat: w[1], wgsLng: w[0], kerLat: k[1], kerLng: k[0], datum };
+}
+
+function rsoToBothDatums(E, N) {
+  const w = proj4('RSO_MALAYA','WGS84_',[E,N]);
+  const k = proj4('RSO_MALAYA','KERTAU48',[E,N]);
+  return { wgsLat: w[1], wgsLng: w[0], kerLat: k[1], kerLng: k[0] };
 }
 
 // ── DOM Ruler Update ────────────────────────────────────────────────────
 function updateRulers() {
   const bottomRuler = document.getElementById('ruler-bottom');
   const leftRuler = document.getElementById('ruler-left');
+  if (typeof CRS_OK!=='undefined' && !CRS_OK) return;
   
   if (!gridEnabled || !map) {
     bottomRuler.innerHTML = '';
@@ -894,7 +900,7 @@ function showErr(msg) {
   el.textContent=msg; el.style.display='block';
   document.getElementById('result-card').style.display='none';
 }
-function clearErr(){ document.getElementById('err-box').style.display='none'; }
+function clearErr(){ document.getElementById('err-box').style.display='none'; var w=document.getElementById('warn-box'); if(w) w.style.display='none'; }
 
 function setMode(m) {
   mode = m;
@@ -917,12 +923,16 @@ function getLL() {
   if (activeTab==='dd') {
     return {lat:parseFloat(document.getElementById('dd-lat').value), lng:parseFloat(document.getElementById('dd-lng').value)};
   }
-  const ld=parseFloat(document.getElementById('lat-d').value)||0;
-  const lm=parseFloat(document.getElementById('lat-m').value)||0;
-  const ls=parseFloat(document.getElementById('lat-s').value)||0;
-  const nd=parseFloat(document.getElementById('lng-d').value)||0;
-  const nm=parseFloat(document.getElementById('lng-m').value)||0;
-  const ns=parseFloat(document.getElementById('lng-s').value)||0;
+  const ld=parseFloat(document.getElementById('lat-d').value);
+  const lm=parseFloat(document.getElementById('lat-m').value);
+  const ls=parseFloat(document.getElementById('lat-s').value);
+  const nd=parseFloat(document.getElementById('lng-d').value);
+  const nm=parseFloat(document.getElementById('lng-m').value);
+  const ns=parseFloat(document.getElementById('lng-s').value);
+  const parts=[ld,lm,ls,nd,nm,ns];
+  if(parts.some(v=>!isFinite(v))) return {lat:NaN,lng:NaN};
+  if(ld<0||ld>8||nm<0||nm>=60||ns<0||ns>=60||lm<0||lm>=60||ls<0||ls>=60) return {lat:NaN,lng:NaN};
+  if(nd<99||nd>105) return {lat:NaN,lng:NaN};
   return {lat:ld+lm/60+ls/3600, lng:nd+nm/60+ns/3600};
 }
 
@@ -941,20 +951,20 @@ function loadGR(e,n) {
 }
 
 function parseGrid6() {
-  const v=document.getElementById('gr-6').value.replace(/\s+/g,' ').trim();
-  const p=v.split(/[\s,]+/);
-  if (p.length===2 && p[0].length===3 && p[1].length===3) {
-    document.getElementById('gr-e').value=parseInt(p[0])*100+50;
-    document.getElementById('gr-n').value=parseInt(p[1])*100+50;
+  const v=document.getElementById('gr-6').value.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+  const p=v.split(/[\s]+/);
+  if (p.length===2 && /^\d{3,5}$/.test(p[0]) && /^\d{3,5}$/.test(p[1])) {
+    document.getElementById('gr-e').value=parseInt(p[0],10)*100+50;
+    document.getElementById('gr-n').value=parseInt(p[1],10)*100+50;
   }
 }
 
 function parseGrid8() {
-  const v=document.getElementById('gr-8').value.replace(/\s+/g,' ').trim();
-  const p=v.split(/[\s,]+/);
-  if (p.length===2 && p[0].length===4 && p[1].length===4) {
-    document.getElementById('gr-e').value=parseInt(p[0])*10+5;
-    document.getElementById('gr-n').value=parseInt(p[1])*10+5;
+  const v=document.getElementById('gr-8').value.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+  const p=v.split(/[\s]+/);
+  if (p.length===2 && /^\d{4,6}$/.test(p[0]) && /^\d{4,6}$/.test(p[1])) {
+    document.getElementById('gr-e').value=parseInt(p[0],10)*10+5;
+    document.getElementById('gr-n').value=parseInt(p[1],10)*10+5;
   }
 }
 
@@ -969,27 +979,30 @@ function doConvert() {
 
 function runLL(lat,lng) {
   try {
-    const {E,N}=latLngToRSO(lat,lng);
+    if(!CRS_OK){ showErr('Projection library failed to load. Check vendor/proj4.min.js.'); return; }
+    const c=convertLLDatum(lat,lng);
+    const {E,N}=c;
     const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
-    lastR={E:Math.round(E),N:Math.round(N),g6,g8,lat,lng};
+    lastR={E:Math.round(E),N:Math.round(N),g6,g8,lat:c.wgsLat,lng:c.wgsLng,kerLat:c.kerLat,kerLng:c.kerLng,datum:c.datum};
 
     document.getElementById('res-e').textContent=Math.round(E).toLocaleString('en-US');
     document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
     document.getElementById('res-8digit').textContent=g8;
     document.getElementById('res-6digit').textContent=g6;
-    document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
+    document.getElementById('res-input').textContent=c.wgsLat.toFixed(6)+'°N  '+c.wgsLng.toFixed(6)+'°E (WGS84) · Kertau '+c.kerLat.toFixed(6)+', '+c.kerLng.toFixed(6);
 
-    document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
-    document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
-    document.getElementById('res-lat-dms').textContent=toDMS(lat)+' N';
-    document.getElementById('res-lng-dms').textContent=toDMS(lng)+' E';
+    document.getElementById('res-lat').textContent=c.wgsLat.toFixed(6)+'°';
+    document.getElementById('res-lng').textContent=c.wgsLng.toFixed(6)+'°';
+    document.getElementById('res-lat-dms').textContent=toDMS(c.wgsLat)+' N';
+    document.getElementById('res-lng-dms').textContent=toDMS(c.wgsLng)+' E';
 
     document.getElementById('result-ll-section').style.display='';
     document.getElementById('result-gr-section').style.display='';
     document.getElementById('copy-row-all').style.display='flex';
     document.getElementById('result-card').style.display='';
+    boundsWarn(E,N);
 
-    placeMarker(lat,lng);
+    placeMarker(c.wgsLat,c.wgsLng);
     
     setTimeout(() => {
       document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1002,17 +1015,19 @@ function doConvertGR() {
   const E=parseFloat(document.getElementById('gr-e').value);
   const N=parseFloat(document.getElementById('gr-n').value);
   if (isNaN(E)||isNaN(N)) { showErr('Please enter Easting and Northing values.'); return; }
-  if (E<100000||E>900000) { showErr('Easting out of Malayan RSO range (100,000 – 900,000).'); return; }
-  if (N<0||N>700000) { showErr('Northing out of Malayan RSO range (0 – 700,000).'); return; }
+  if (E<100000||E>800000) { showErr('Easting out of range (100,000 – 800,000).'); return; }
+  if (N<50000||N>800000) { showErr('Northing out of range (50,000 – 800,000).'); return; }
   runGR(E,N);
 }
 
 function runGR(E,N) {
   try {
-    const {lat,lng}=rsoToLatLng(E,N);
+    if(!CRS_OK){ showErr('Projection library failed to load. Check vendor/proj4.min.js.'); return; }
+    const b=rsoToBothDatums(E,N);
+    const {lat,lng}={lat:b.wgsLat,lng:b.wgsLng};
     if (lat<0.5||lat>8||lng<98||lng>106) { showErr('Coordinates are outside Peninsular Malaysia.'); return; }
     const g6=fmtGrid(E,N,6), g8=fmtGrid(E,N,8);
-    lastR={lat,lng,E:Math.round(E),N:Math.round(N),g6,g8};
+    lastR={lat,lng,E:Math.round(E),N:Math.round(N),g6,g8,kerLat:b.kerLat,kerLng:b.kerLng};
 
     document.getElementById('res-lat').textContent=lat.toFixed(6)+'°';
     document.getElementById('res-lng').textContent=lng.toFixed(6)+'°';
@@ -1023,12 +1038,13 @@ function runGR(E,N) {
     document.getElementById('res-n').textContent=Math.round(N).toLocaleString('en-US');
     document.getElementById('res-8digit').textContent=g8;
     document.getElementById('res-6digit').textContent=g6;
-    document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E';
+    document.getElementById('res-input').textContent=lat.toFixed(6)+'°N  '+lng.toFixed(6)+'°E (WGS84) · Kertau '+b.kerLat.toFixed(6)+', '+b.kerLng.toFixed(6);
 
     document.getElementById('result-ll-section').style.display='';
     document.getElementById('result-gr-section').style.display='';
     document.getElementById('copy-row-all').style.display='flex';
     document.getElementById('result-card').style.display='';
+    boundsWarn(E,N);
 
     placeMarker(lat,lng);
     
@@ -1042,20 +1058,38 @@ function cp(type) {
   const map2={
     'grid8': lastR.g8,
     'grid6': lastR.g6,
-    'en': `E: ${lastR.E}  N: ${lastR.N}`,
-    'll-dd': `${lastR.lat?.toFixed(6)}°N  ${lastR.lng?.toFixed(6)}°E`,
-    'll-dms': `${toDMS(lastR.lat)} N  ${toDMS(lastR.lng)} E`
+    'en': (lastR.E!=null) ? `E: ${lastR.E}  N: ${lastR.N}` : '',
+    'll-dd': (lastR.lat!=null) ? `${lastR.lat.toFixed(6)}°N  ${lastR.lng.toFixed(6)}°E` : '',
+    'll-dms': (lastR.lat!=null) ? `${toDMS(lastR.lat)} N  ${toDMS(lastR.lng)} E` : ''
   };
   const text=map2[type];
   if (!text) return;
-  navigator.clipboard.writeText(text).then(()=>{
-    const btns=[...document.querySelectorAll('.btn-copy')];
-    const btn=btns.find(b=>b.onclick?.toString().includes(`'${type}'`));
-    if (btn) { const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o,1500); }
-  }).catch(()=>{});
+  const done=(btn)=>{ if (btn) { const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o,1500); } };
+  const order=['grid8','grid6','en','ll-dd','ll-dms'];
+  const btn=document.querySelectorAll('.btn-copy')[order.indexOf(type)];
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(btn)).catch(()=>{ fallbackCopy(text); done(btn); });
+  } else { fallbackCopy(text); done(btn); }
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  ta.remove();
 }
 
-document.addEventListener('DOMContentLoaded', initMap);
+document.addEventListener('DOMContentLoaded', function(){
+  initMap();
+  document.querySelectorAll('input[name=datum]').forEach(function(r){
+    r.addEventListener('change', function(){
+      var v=getDatum();
+      var w=document.getElementById('datum-wgs-wrap'), k=document.getElementById('datum-kertau-wrap');
+      if(w) w.style.borderColor=(v==='wgs84')?'var(--green2)':'transparent';
+      if(k) k.style.borderColor=(v==='kertau')?'var(--green2)':'transparent';
+    });
+  });
+  if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+});
 document.addEventListener('keydown', e=>{ if(e.key==='Enter') mode==='ll' ? doConvert() : doConvertGR(); });
 </script>
 </body>

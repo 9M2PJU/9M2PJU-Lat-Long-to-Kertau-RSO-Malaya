@@ -1,0 +1,29 @@
+{
+  "name": "Kertau RSO Malaya Converter",
+  "short_name": "Kertau RSO",
+  "description": "WGS84 / Kertau 1948 Lat-Long to RSO Malaya grid (EPSG:3168) converter for Peninsular Malaysia.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -53,6 +53,22 @@ The conversion utilizes the following ellipsoid parameters for the **Modified Ev
 
 ---
 
+## Android app (APK via GitHub Actions)
+
+No local build needed. The APK wraps this same page in an offline WebView.
+
+* **Download:** site “Android App” card → `releases/latest/download/kertau-rso-malaya.apk`,
+  or repo → `Actions → Build APK →` latest run → Artifacts → `kertau-rso-malaya-apk`.
+* **How it builds:** `.github/workflows/build-apk.yml` runs on every `main` push / PR /
+  manually (`workflow_dispatch`). It syncs `index.html` + `vendor/` + `icons/` via
+  `android/sync-www.sh`, verifies PROJ vectors in Node, then runs
+  `gradle -p android assembleDebug` on `ubuntu-latest` (JDK 17, Android platform 34).
+* **Tagged release:** push a tag `v*` (e.g. `git tag v1.0.0 && git push origin v1.0.0`)
+  and the workflow publishes the APK to GitHub Releases — this is what the Pages
+  download button points to.
+* **Install:** on the phone enable “Install unknown apps”, open the APK. Debug-signed,
+  sideload only (no Play Store). Converter works offline; map tiles need internet.
+
 ## License
 
 This software is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. 

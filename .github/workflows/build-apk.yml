@@ -1,0 +1,91 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install platform + build-tools
+        run: |
+          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          sdkmanager --licenses <<< $'y\ny\ny\ny\ny\ny\ny\ny'
+
+      - name: Install Gradle 8.10.2
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.10.2/bin" >> "$GITHUB_PATH"
+
+      - name: Sync web app into WebView assets
+        run: bash android/sync-www.sh
+
+      - name: Verify conversion math (PROJ vectors)
+        run: |
+          node -e "
+          const proj4=require('./vendor/proj4.min.js');
+          const RSO='+proj=omerc +no_uoff +lat_0=4 +lonc=102.25 +alpha=323.0257905 +gamma=323.130102361111 +k=0.99984 +x_0=804670.24 +y_0=0 +a=6377295.664 +rf=300.8017 +towgs84=-11,851,5,0,0,0,0 +units=m +no_defs';
+          const KERTAU='+proj=longlat +a=6377295.664 +rf=300.8017 +towgs84=-11,851,5,0,0,0,0 +no_defs';
+          const WGS84='+proj=longlat +datum=WGS84 +no_defs';
+          proj4.defs('RSO',RSO); proj4.defs('KERTAU',KERTAU); proj4.defs('WGS84',WGS84);
+          const cases=[
+            {lat:3.1390,lng:101.6869,e:410267.2,n:347383.7,mode:'WGS84'},
+            {lat:3.1390,lng:101.6869,e:410105.6,n:347363.3,mode:'KERTAU'},
+            {lat:1.4655,lng:103.7578,e:640348.3,n:162058.9,mode:'WGS84'}
+          ];
+          for(const c of cases){
+            const src=c.mode==='WGS84'?'WGS84':'KERTAU';
+            const en=proj4(src,'RSO',[c.lng,c.lat]);
+            const dE=Math.abs(en[0]-c.e), dN=Math.abs(en[1]-c.n);
+            console.log(src,c.lat+','+c.lng,'->',en[0].toFixed(1)+','+en[1].toFixed(1),'err',dE.toFixed(1)+'m,'+dN.toFixed(1)+'m');
+            if(dE>2||dN>2){console.error('FAIL: forward error >2m');process.exit(1);}
+            const back=proj4('RSO',src,en);
+            const dLng=Math.abs(back[0]-c.lng)*111320*Math.cos(c.lat*Math.PI/180), dLat=Math.abs(back[1]-c.lat)*111320;
+            if(dLng>0.5||dLat>0.5){console.error('FAIL: roundtrip >0.5m');process.exit(1);}
+          }
+          console.log('All PROJ vectors OK');
+          "
+
+      - name: Build debug APK
+        run: gradle -p android assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: |
+          ls -lh android/app/build/outputs/apk/debug/
+          cp android/app/build/outputs/apk/debug/app-debug.apk kertau-rso-malaya.apk
+          ls -lh kertau-rso-malaya.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kertau-rso-malaya-apk
+          path: kertau-rso-malaya.apk
+          if-no-files-found: error
+
+      - name: Publish GitHub Release (tags v* only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kertau-rso-malaya.apk
+          generate_release_notes: true
