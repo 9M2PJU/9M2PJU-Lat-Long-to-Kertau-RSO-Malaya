@@ -5,11 +5,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="$ROOT/android/app/src/main/assets/www"
 rm -rf "$DEST"
-mkdir -p "$DEST/vendor" "$DEST/icons"
+mkdir -p "$DEST/vendor/images" "$DEST/icons"
 cp "$ROOT/index.html" "$DEST/"
 cp "$ROOT/manifest.json" "$DEST/" 2>/dev/null || true
 cp "$ROOT/sw.js" "$DEST/" 2>/dev/null || true
 cp "$ROOT/vendor/proj4.min.js" "$ROOT/vendor/leaflet.js" "$ROOT/vendor/leaflet.css" "$DEST/vendor/"
+cp "$ROOT/vendor/images/"*.png "$DEST/vendor/images/" 2>/dev/null || true
 cp "$ROOT/icons/icon.svg" "$ROOT/icons/icon-192.png" "$ROOT/icons/icon-512.png" "$DEST/icons/"
 # Service workers + file:// don't mix: strip SW registration from the packaged copy
 # (converter itself is fully offline once proj4/leaflet are bundled).

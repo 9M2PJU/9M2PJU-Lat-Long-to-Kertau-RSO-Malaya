@@ -858,7 +858,7 @@ function initMap() {
     maxZoom: 19
   });
   osm.addTo(map);
-  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomleft' }).addTo(map);
+  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomleft', collapsed: false }).addTo(map);
 
   gridCanvas = new L.RSOGrid();
   gridCanvas.addTo(map);
