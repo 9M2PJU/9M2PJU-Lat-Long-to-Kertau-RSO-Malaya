@@ -123,6 +123,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   .map-container.active{display:flex;min-height:75vh;}
   #map{min-height:60vh;}
   .map-info-box{min-width:0;left:16px;right:16px;}
+  .map-container .map-info-box{position:static;margin:8px 8px 0;font-size:12px;}
+  .grid-controls{flex-wrap:wrap;max-width:calc(100% - 76px);font-size:11px;}
   .leaflet-bottom.leaflet-right{margin-bottom:64px;}
 }
 
@@ -859,7 +861,7 @@ function initMap() {
     maxZoom: 19
   });
   osm.addTo(map);
-  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomright', collapsed: false }).addTo(map);
+  L.control.layers({ 'Street (OSM)': osm, 'Satellite (Esri)': satellite }, null, { position: 'bottomright', collapsed: window.innerWidth < 1200 }).addTo(map);
 
   gridCanvas = new L.RSOGrid();
   gridCanvas.addTo(map);
