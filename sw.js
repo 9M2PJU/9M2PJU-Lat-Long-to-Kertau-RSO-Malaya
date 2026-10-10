@@ -1,5 +1,5 @@
 /* Offline app shell: converter works without network (map tiles still need internet). */
-const CACHE = 'kertau-rso-v2';
+const CACHE = 'kertau-rso-v3';
 const ASSETS = [
   './',
   './index.html',
