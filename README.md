@@ -134,3 +134,9 @@ You may copy, modify, and distribute this software; if you host a modified
 version, you must make the modified source available to its users.
 
 Developed and maintained by **9M2PJU** — [hamradio.my](https://hamradio.my).
+
+## Support
+
+If you find this project useful, please consider supporting it:
+
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=9m2pju%40hamradio.my&currency_code=MYR&item_name=9M2PJU-Lat-Long-to-Kertau-RSO-Malaya)
